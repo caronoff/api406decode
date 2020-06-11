@@ -6,7 +6,6 @@ load_dotenv('.env')
 
 app = Flask(__name__)
 
-
 @app.route("/decoded/<hexcode>")
 def decoded(hexcode):
 
