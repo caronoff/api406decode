@@ -1,0 +1,58 @@
+.input-group-addon.primary {
+    color: rgb(255, 255, 255);
+    background-color: rgb(50, 118, 177);
+    border-color: rgb(40, 94, 142);
+}
+.input-group-addon.success {
+    color: rgb(255, 255, 255);
+    background-color: rgb(92, 184, 92);
+    border-color: rgb(76, 174, 76);
+}
+.input-group-addon.info {
+    color: rgb(255, 255, 255);
+    background-color: rgb(57, 179, 215);
+    border-color: rgb(38, 154, 188);
+}
+.input-group-addon.warning {
+    color: rgb(255, 255, 255);
+    background-color: rgb(240, 173, 78);
+    border-color: rgb(238, 162, 54);
+}
+.input-group-addon.danger {
+    color: rgb(255, 255, 255);
+    background-color: rgb(217, 83, 79);
+    border-color: rgb(212, 63, 58);
+}
+
+.navbar {
+  position: relative;
+  background-color:transparent;
+  top:0;
+  background-image: none;
+  background-repeat: no-repeat;
+  border-color: transparent;
+ }
+
+ .brand {
+  position: absolute;
+  top:0;
+    left: 50%;
+    margin-left: -100px !important;  /* 50% of your logo width */
+    display: block;
+ }
+.container{
+  width: 100%;
+  margin: 0 auto;
+  margin-top:25px;
+}
+
+#footer{
+    font:bold 14px;
+    position: absolute;
+    bottom: 0;
+    width:100%;
+    height:auto;
+    padding:1%;
+    border-top:1px solid #1E88E5;
+
+}
