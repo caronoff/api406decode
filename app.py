@@ -9,6 +9,7 @@ load_dotenv('.env')
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'Optional default value')
 gmap_key = os.getenv('GMAP_KEY', 'Optional default value')
+print(gmap_key)
 COUNTRIES=[]
 country=open('countries2.csv')
 for line in country.readlines():
@@ -38,7 +39,7 @@ def validatehex():
     return jsonify(echostatus=statuscheck, message=message,newdata=new_data)
 
 
-@app.route("/decoded/<hexcode>")
+@app.route("/decoded/<hexcode>",methods=['GET','POST'])
 def decoded(hexcode):
     geocoord = (0, 0)
     locationcheck = False
@@ -68,9 +69,14 @@ def decoded(hexcode):
 def decode():
     if request.method == 'POST':
         hexcode = str(request.form['hexcode']).strip()
-        print(hexcode)
-        return redirect(url_for('decoded',hexcode=hexcode))
+        return redirect(url_for('decoded',hexcode=hexcode), code=307)
+        #return redirect(url_for('about',hexcode=hexcode))
     return render_template('decodehex.html', title='Home')
+
+@app.route("/about",methods=['GET','POST'])
+def about():
+    return render_template('about.html')
+
 
 if __name__ == '__main__':
     app.secret_key = 'my secret'
