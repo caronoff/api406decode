@@ -45,11 +45,6 @@ def decoded(hexcode):
     locationcheck = False
     try:
         beacon = decodehex2.Beacon(hexcode)
-        error=''
-        if len(beacon.errors)>0 :
-            error = ', '.join(beacon.errors)
-
-
         if beacon.has_loc() and is_number(beacon.location[0]) and is_number(beacon.location[1]):
             geocoord = (float(beacon.location[0]),float(beacon.location[1]))
             locationcheck=True
