@@ -16,7 +16,7 @@ def calcBCH(binary, b1start, b1end, b2end):
     Returns:
         bchlist: calculated BCH code
     """
-    #f = open('bchfile2.txt', 'w')
+
     sout=""
     gx = '1110001111110101110000101110111110011110010010111'
     bchlist = list(binary[b1start:b1end] + '0' * (b2end - b1end))
