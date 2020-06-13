@@ -69,7 +69,7 @@ def decoded(hexcode):
 def decode():
     if request.method == 'POST':
         hexcode = str(request.form['hexcode']).strip()
-        return redirect(url_for('decoded',hexcode=hexcode), code=307)
+        return redirect(url_for('decoded',hexcode=hexcode))
     return render_template('decodehex.html', title='Home')
 
 
