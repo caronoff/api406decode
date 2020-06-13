@@ -70,12 +70,9 @@ def decode():
     if request.method == 'POST':
         hexcode = str(request.form['hexcode']).strip()
         return redirect(url_for('decoded',hexcode=hexcode), code=307)
-        #return redirect(url_for('about',hexcode=hexcode))
     return render_template('decodehex.html', title='Home')
 
-@app.route("/about",methods=['GET','POST'])
-def about():
-    return render_template('about.html')
+
 
 
 if __name__ == '__main__':
