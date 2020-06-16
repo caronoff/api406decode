@@ -75,7 +75,6 @@ def decode():
     return render_template('decodehex.html', title='Home')
 
 
-
 if __name__ == '__main__':
     app.secret_key = 'my secret'
     app.run(debug=True)
