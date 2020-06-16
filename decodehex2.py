@@ -262,7 +262,10 @@ class BeaconFGB(HexError):
 
     def getencpos(self):
         return self.encpos
- 
+
+    def protocoltype(self):
+        return self.protocoldata()
+
     def protocoldata(self):
         s=''
         for k in sorted(self._protocold):
@@ -1083,6 +1086,9 @@ class Beacon(HexError):
     def btype(self):
         return self.beacon.btype()
 
+    def protocoltype(self):
+        return self.beacon.protocoltype()
+
     def hexuin(self):
         return self.beacon.hexuin()
 
@@ -1090,8 +1096,8 @@ class Beacon(HexError):
         return self.beacon.bchmatch()
 
     def gettac(self):
-        print(self.beacon.gettac())
-        print('Tac No')
+        #print(self.beacon.gettac())
+        #print('Tac No')
         return self.beacon.gettac()
 
     def loctype(self):

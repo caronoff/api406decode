@@ -44,7 +44,7 @@ def api(hexcode):
         beacon = decodehex2.Beacon(hexcode)
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
-    return jsonify(result=beacon.tablebin,mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype())
+    return jsonify(result=beacon.tablebin,mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
 
 @app.route("/decoded/<hexcode>",methods=['GET','POST'])
 def decoded(hexcode):
@@ -77,4 +77,4 @@ def decode():
 
 if __name__ == '__main__':
     app.secret_key = 'my secret'
-    app.run(debug=True)
+    app.run(debug=False)

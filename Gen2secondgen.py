@@ -645,7 +645,8 @@ class SecondGen(Gen2Error):
     def gettac(self):
         return self.tac
 
-
+    def protocoltype(self):
+        return 'Second Generation Beacon'
 
     def loctype(self):
         return 'na - SGB'
