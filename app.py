@@ -9,7 +9,7 @@ load_dotenv('.env')
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'Optional default value')
 gmap_key = os.getenv('GMAP_KEY', 'Optional default value')
-print(gmap_key)
+
 COUNTRIES=[]
 country=open('countries2.csv')
 for line in country.readlines():
@@ -38,6 +38,13 @@ def validatehex():
             new_data=new_data.upper()
     return jsonify(echostatus=statuscheck, message=message,newdata=new_data)
 
+@app.route('/api/<hexcode>',methods=['GET'])
+def api(hexcode):
+    try:
+        beacon = decodehex2.Beacon(hexcode)
+    except decodehex2.HexError as err:
+        return jsonify(error=[err.value,err.message])
+    return jsonify(result=beacon.tablebin,mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype())
 
 @app.route("/decoded/<hexcode>",methods=['GET','POST'])
 def decoded(hexcode):
