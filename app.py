@@ -37,13 +37,13 @@ def validatehex():
             new_data=new_data.upper()
     return jsonify(echostatus=statuscheck, message=message,newdata=new_data)
 
-@app.route('/<hexcode>',methods=['GET'])
+@app.route('/decode/<hexcode>',methods=['GET'])
 def api(hexcode):
     try:
         beacon = decodehex2.Beacon(hexcode)
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
-    return jsonify(result=beacon.tablebin,mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
+    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
 
 
 
