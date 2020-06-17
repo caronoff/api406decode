@@ -2,8 +2,8 @@ import requests
 import time
 from requests.exceptions import HTTPError
 import decodehex2
-
-
+import os
+from chardet import detect
 
 def decode(hexcode):
     result={}
@@ -36,35 +36,46 @@ def decodehex(apiurl,hex):
     return error
 
 def decodefile(inputfilename,outputfilename,apilink,a):
-
-    output = open(outputfilename, 'w')
-    with open(inputfilename, 'r') as fp:
+    readfile(inputfilename)
+    output = open(outputfilename, 'w',encoding='utf-8')
+    with open(inputfilename, encoding='utf-8') as fp:
         #lines = fp.readlines()
         cnt=0
         tic = time.perf_counter()
 
         while True and cnt < a:
-            line = fp.readline()
-            if not line:
-                break
 
-            hex = line.strip()
-            if apilink=='':
-                result=decode(hex)
-            else:
-                result = (decodehex(apilink, hex))
-            lstdecode = [hex]
-            if 'error' in result:
-                for e in result['error']:
-                    lstdecode.append(e)
+            try:
+                line = fp.readline()
+                line = line.strip().strip('"')
+                if len(line)>0:
+                    hex=[]
+                    if ',' in line:
+                        hex= line.split(',')
+                    else:
+                        hex.append(line)
+                    for hexcode in hex:
+                        hexcode=hexcode.strip().strip('"')
+                        if apilink=='':
+                            result=decode(hexcode)
+                        else:
+                            result = (decodehex(apilink, hexcode))
+                        lstdecode = [hexcode]
 
-            else:
-                for fld in ('beacontype', 'mid', 'country', 'tac', 'protocol'):
-                    lstdecode.append(str(result[fld]))
+                        if 'error' in result:
+                            for e in result['error']:
+                                lstdecode.append(e)
+                        else:
+                            for fld in ('beacontype', 'mid', 'country', 'tac', 'protocol'):
+                                lstdecode.append(str(result[fld]))
 
-            decodeline = ','.join(lstdecode) + '\n'
+                        decodeline = ','.join(lstdecode) + '\n'
+                        output.write(decodeline)
+            except UnicodeDecodeError:
+                output.write(hex+' Unicode Character decode error\n')
+                pass
 
-            output.write(decodeline)
+
             cnt+=1
 
     toc = time.perf_counter()
@@ -72,11 +83,44 @@ def decodefile(inputfilename,outputfilename,apilink,a):
     print(f"execution in {toc - tic:0.4f} seconds")
 
 
+def readfile(srcfile):
+    trgfile='newfile.txt'
+    from_codec = get_encoding_type(srcfile)
+    print(from_codec)
+
+    # add try: except block for reliability
+    try:
+        with open(srcfile, 'r', encoding=from_codec) as f, open(trgfile, 'w', encoding='utf-8') as e:
+            text = f.read()  # for small files, for big use chunks
+            e.write(text)
+
+
+        os.remove(srcfile)  # remove old encoding file
+        os.rename(trgfile, srcfile)  # rename new encoding
+    except UnicodeDecodeError:
+        print('Decode Error')
+
+    except UnicodeEncodeError:
+        print('Encode Error')
+
+
+# get file encoding type
+def get_encoding_type(file):
+    with open(file, 'rb') as f:
+        rawdata = f.read()
+    return detect(rawdata)['encoding']
+
 
 if __name__ == '__main__':
-    apiurl='https://406decode.org/api'
-    localurl='http://127.0.0.1:5000/api'
+
     ibrdfile='ibrd-16June2020.txt'
-    ticketfile='hexticket.txt'
-    decodefile(ibrdfile,'hexfromibrd.csv','',5000)
+    ticketfile='Hexcleaned.txt'
+
+    methods=['https://406decode.org/api','http://127.0.0.1:5000/api','']
+
+    decodefile('hexcleaned.txt','hexfromticket.csv',methods[0],100)
+
+
+    #readfile(ticketfile)
+
 
