@@ -92,14 +92,14 @@ def getFiveCharChecksum2(bcnId15):
     for char in bcnId15[0:-1]:
         decimalValue = int(ord(char))
         tmpLongValue = int(runningSum * modifier) + (decimalValue)
-        print(tmpLongValue,tmpLongValue / runningSumLimit)
+        #print(tmpLongValue,tmpLongValue / runningSumLimit)
         tmpLongValue2 = int((tmpLongValue / float(runningSumLimit)))        #print(tmpLongValue>2147483647,tmpLongValue2>2147483647)
         runningSum = tmpLongValue - (tmpLongValue2 * runningSumLimit)
         tmpLongValue = constPrimVal * modifier
         tmpLongValue2 = int(tmpLongValue / modifierLimit)
         modifier = tmpLongValue - (tmpLongValue2 * modifierLimit)
         #print(tmpLongValue > 2147483647, tmpLongValue2 > 2147483647)
-        print(char, decimalValue, tmpLongValue2, tmpLongValue, modifier, runningSum)
+        #print(char, decimalValue, tmpLongValue2, tmpLongValue, modifier, runningSum)
 
     # on last character here use the higher resolution result as input to final truncation
 
@@ -107,7 +107,7 @@ def getFiveCharChecksum2(bcnId15):
     tmpLongValue = int(runningSum * modifier) +(decimalValue)
     tmpLongValue2 = int(tmpLongValue / returnLimit)
     runningSum = tmpLongValue - (tmpLongValue2 * returnLimit)
-    print(bcnId15[-1], decimalValue, tmpLongValue2, tmpLongValue, modifier, runningSum)
+    #print(bcnId15[-1], decimalValue, tmpLongValue2, tmpLongValue, modifier, runningSum)
 
     return hex(runningSum)[2:].upper().zfill(5)
 

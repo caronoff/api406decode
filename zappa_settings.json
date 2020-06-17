@@ -1,0 +1,10 @@
+{
+    "prod": {
+        "app_function": "app.app",
+        "profile_name": "default",
+        "project_name": "api406decode",
+        "runtime": "python3.6",
+        "s3_bucket": "zappa-5b6lt7s8t",
+        "aws_region": "us-east-1"
+    }
+}
