@@ -6,7 +6,7 @@ import bisect
 
 import definitions
 import decodefunctions
-
+from countries import countrydic
 
 def bin2dec(binary_str):
     """Convert binary string to decimal integer
@@ -89,7 +89,8 @@ def countryname(mid):
     """
 
     try:
-        cname = definitions.countrydic[mid]
+
+        cname = countrydic[str(mid)]
     except KeyError:
         cname = 'Unknown MID'
     return cname
