@@ -7,7 +7,7 @@ load_dotenv('.env')
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'Optional default value')
-gmap_key = os.getenv('GMAP_KEY', 'Optional default value')
+
 
 COUNTRIES=[]
 country=open('countries2.csv')
