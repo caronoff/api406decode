@@ -9,6 +9,16 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'Optional default value')
 
 
+@app.route('/', methods=['GET'])
+def jsonhex():
+    content = request.get_json()
+    hexcode = content.get('hexcode')
+    try:
+        beacon = decodehex2.Beacon(hexcode)
+    except decodehex2.HexError as err:
+        return jsonify(error=[err.value,err.message])
+    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
+
 
 
 @app.route('/decode/<hexcode>',methods=['GET'])
