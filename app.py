@@ -9,10 +9,10 @@ app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'Optional default value')
 
 
-@app.route('/', methods=['GET'])
+@app.route('/json', methods=['POST'])
 def jsonhex():
-    content = request.get_json()
-    hexcode = content.get('hexcode')
+    req_data = request.get_json()
+    hexcode = req_data['hexcode']
     try:
         beacon = decodehex2.Beacon(hexcode)
     except decodehex2.HexError as err:
@@ -22,13 +22,17 @@ def jsonhex():
 
 
 @app.route('/decode/<hexcode>',methods=['GET'])
-def api(hexcode):
+def decode(hexcode):
     try:
         beacon = decodehex2.Beacon(hexcode)
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
     return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
 
+@app.route('/',methods=['GET'])
+def api():
+    msg='hello world 2'
+    return jsonify(msg=msg)
 
 
 
