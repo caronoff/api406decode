@@ -31,7 +31,7 @@ def decode(hexcode):
 
 @app.route('/',methods=['GET'])
 def api():
-    msg='hello world 2'
+    msg='hello world 3'
     return jsonify(msg=msg)
 
 
