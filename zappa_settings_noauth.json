@@ -1,11 +1,5 @@
 {
     "dev": {
-        "authorizer": {
-        "type": "COGNITO_USER_POOLS",
-        "provider_arns": [
-            "arn:aws:cognito-idp:us-east-1:345131819063:userpool/us-east-1_b7ZjuHtnz"
-        ]
-    },
         "app_function": "app.app",
         "profile_name": "default",
         "project_name": "api406decode",

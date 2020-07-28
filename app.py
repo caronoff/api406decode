@@ -4,20 +4,40 @@ import boto3
 import os
 from dotenv import load_dotenv
 load_dotenv('.env')
-
-USERS_TABLE = os.environ['USERS_TABLE']
-client = boto3.client('dynamodb')
-
 app = Flask(__name__)
+
+
+
 app.secret_key = os.getenv('SECRET_KEY', 'Optional default value')
 
+dynamodb = boto3.resource('dynamodb')
+db = dynamodb.Table('myservice-dev')
+hextable = dynamodb.Table('hexcode')
 
-@app.route('/json', methods=['POST'])
+@app.route('/counter', methods=['GET'])
+def counter_get():
+    res = db.get_item(Key={'id': 'counter'})
+    return jsonify({'counter': str(res['Item']['counter_value'])})
+
+@app.route('/counter/increase', methods=['POST'])
+def counter_increase():
+    res = db.get_item(Key={'id': 'counter'})
+    value = res['Item']['counter_value'] + 1
+    res = db.update_item(    Key={'id': 'counter'},    UpdateExpression='set counter_value=:value',    ExpressionAttributeValues={':value': value},  )
+    return jsonify({'counter': str(value)})
+
+
+@app.route('/json', methods=['PUT'])
 def jsonhex():
     req_data = request.get_json()
     hexcode = req_data['hexcode']
     try:
         beacon = decodehex2.Beacon(hexcode)
+        res = db.get_item(Key={'id': 'counter'})
+        value = res['Item']['counter_value'] + 1
+        res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
+                             ExpressionAttributeValues={':value': value}, )
+        hextable.put_item(Item = { 'entry_id': str(value), 'hexcode': hexcode,}  )
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
     return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
@@ -36,45 +56,6 @@ def decode(hexcode):
 def api():
     msg='hello world 4'
     return jsonify(msg=msg)
-
-
-@app.route("/users/<string:user_id>")
-def get_user(user_id):
-    resp = client.get_item(
-        TableName=USERS_TABLE,
-        Key={
-            'userId': { 'S': user_id }
-        }
-    )
-    item = resp.get('Item')
-    if not item:
-        return jsonify({'error': 'User does not exist'}), 404
-
-    return jsonify({
-        'userId': item.get('userId').get('S'),
-        'name': item.get('name').get('S')
-    })
-
-
-@app.route("/users", methods=["POST"])
-def create_user():
-    user_id = request.json.get('userId')
-    name = request.json.get('name')
-    if not user_id or not name:
-        return jsonify({'error': 'Please provide userId and name'}), 400
-
-    resp = client.put_item(
-        TableName=USERS_TABLE,
-        Item={
-            'userId': {'S': user_id },
-            'name': {'S': name }
-        }
-    )
-
-    return jsonify({
-        'userId': user_id,
-        'name': name
-    })
 
 
 
