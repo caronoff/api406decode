@@ -72,10 +72,10 @@ class Country:
     def __init__(self, midbin):
         mid = Fcn.bin2dec(midbin)
         try:
-            cname = definitions.countrydic[mid]
+            cname = definitions.countrydic[str(mid)]
         except KeyError:
             cname = 'Unknown MID'
-
+        print(cname)
         #self.result = 'Country Code (bits 27-36) :({b})  Decimal: {d}   Name: {n}.'.format(b=midbin,d=mid,n=cname)
         self._result = (('Country Code:', mid), ('Country Name:', cname))
         self.cname = "{} - {}".format(cname, mid)
