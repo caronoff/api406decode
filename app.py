@@ -40,7 +40,7 @@ def jsonhex():
         hextable.put_item(Item = { 'entry_id': str(value), 'hexcode': hexcode,}  )
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
-    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
+    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype())
 
 
 
@@ -52,12 +52,15 @@ def decode(hexcode):
         value = res['Item']['counter_value'] + 1
         res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
                              ExpressionAttributeValues={':value': value}, )
-        hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, })
+        mid=beacon.get_mid()
+        country=beacon.get_country()
+        ipaddress = str(request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr))
+        hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, 'mid': mid,'country':country, 'ipaddress':ipaddress, })
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
 
 
-    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
+    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype())
 
 @app.route('/',methods=['GET'])
 def api():

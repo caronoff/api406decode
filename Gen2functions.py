@@ -6,7 +6,7 @@ import bisect
 
 import definitions
 import decodefunctions
-from countries import countrydic
+
 
 def bin2dec(binary_str):
     """Convert binary string to decimal integer
@@ -89,8 +89,7 @@ def countryname(mid):
     """
 
     try:
-
-        cname = countrydic[str(mid)]
+        cname = definitions.countrydic[mid]
     except KeyError:
         cname = 'Unknown MID'
     return cname
@@ -179,9 +178,10 @@ def getlatitude(lat):
             Otherwise, it will be negative
     """
 
-    if lat == '01111111000001111100000':  #Default value
-        return ('No latitude data available', 'N/A')
-
+    if lat == '01111111000001111100000':  #Default value for encoded location
+        return ('Default value. No latitude data available in encoded location', 'N/A')
+    elif lat =='11111111000001111100000' :# Default value for no encoded location
+        return ('Default value. No latitude data available in message with no encoded location', 'N/A')
     else:
         if lat[0] == '0':
             nsflag = 'N'
@@ -198,7 +198,7 @@ def getlatitude(lat):
             signedLat = latitude * -1.0
 
         if latitude > 90:
-            return ('Invalid Latitude', 'N/A')
+            return ('Invalid Latitude (greater than 90 degrees)', 'N/A')
         else:
             return ((str(latitude) + " " + nsflag), signedLat)
 
@@ -218,8 +218,10 @@ def getlongitude(lon):
             Otherwise, it will be negative
     """
 
-    if lon == '011111111111110000011111':     #Default value
-        return ('No longitude data available', 'N/A')
+    if lon == '011111111111110000011111':     #Default value for encoded location
+        return ('Default value. No longitude data available in encoded location', 'N/A')
+    elif lon =='111111111111110000011111' :# Default value for no encoded location
+        return ('Default value. No longitude data available in message with no encoded location', 'N/A')
 
     else:
         if lon[0] == '0':
@@ -237,7 +239,7 @@ def getlongitude(lon):
             signedLon = longitude * -1.0
 
         if degreelon > 180:
-            return ('Invalid Longitude', 'N/A')
+            return ('Invalid Longitude (greater than 180 degrees)', 'N/A')
         else:
             return ((str(longitude) + " " + ewflag), signedLon)
 

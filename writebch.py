@@ -44,9 +44,9 @@ def calcBCH(binary, b1start, b1end, b2end):
                                                          (firstone + mx.index('1') + oldgxspace) * ' ', gx)
                     newgx = (newgxspace + oldgxspace) * ' ' + gx
                     oldgxspace = newgx.index('1')
-                    f.write("\r\n{} {} {}".format(str(i), str(mx.index('1')),(b2end-2) * '-'))
+                    #f.write("\r\n{} {} {}".format(str(i), str(mx.index('1')),(b2end-2) * '-'))
                     sout=sout+"\r\n{} {} {}".format(str(i), str(mx.index('1')),(b2end-2) * '-')
-                    f.write(bchnew)
+                    #f.write(bchnew)
                     sout=sout+bchnew
             newrow = []
             for k in range(len(gx)):

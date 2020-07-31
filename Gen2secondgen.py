@@ -7,6 +7,7 @@
 
 import Gen2functions as Func
 import Gen2rotating as rotating
+import writebch
 import definitions
 
 
@@ -46,20 +47,16 @@ class SecondGen(Gen2Error):
 
         if len(self.bits) == 252 or len(self.bits) == 204 :
             self.type="Complete message"
-
             pbit=self.bits[0:2]
             if pbit=='00':
-                padding='OK'
+                padding='Normal mode transmission (i.e., operational mode)'
+            elif pbit=='10':
+                padding='Self-test mode transmission'
             else:
-                padding = 'Left padding should be 00 unless this message self-test beacon transmission '
+                padding='ERROR! first two bits not 00 nor 10'
                 self.errors.append(padding)
-                self.tablebin.append(['left padding', pbit, '', padding])
-                if pbit=='10':
-                    self.tablebin.append(['', '', '', 'This is a self-test beacon transmission or bad message'])
-                else:
-                    self.tablebin.append(['', '', '', 'ERROR! Value is not self-test beacon transmission.'])
 
-
+            self.tablebin.append(['Left pad', pbit, '', padding])
             ##Add an additional bit to ensure that bits in array line up with bits in documentation and only include important bits 1-202
             self.bits = "0" + self.bits[2:]
             ##Add the 23 Hex ID to our table
@@ -71,10 +68,15 @@ class SecondGen(Gen2Error):
             ##T018 Issue 1 - Rev 4:  Bit 1-16 Type Approval Certificate #   (previously BIT 1-20  Type Approval Certificate #)
 
             self.tac = Func.bin2dec(self.bits[1:17])
+
             if self.tac<10000:
-                warn='<strong>{}</strong>  <br>WARNING!: SGB specifications stipulate TAC No >=10,000'.format(self.tac)
+                warn='# {} Warning:  SGB specifications stipulate TAC No should be greater than 10,000'.format(self.tac)
+                self.errors.append('TAC ' + warn)
+            elif self.tac> 65520:
+                warn='# {} - System beacon'.format(self.tac)
+
             else:
-                warn=self.tac
+                warn='# {}'.format(self.tac)
             self.tablebin.append(['1-16',
                                   self.bits[1:17],
                                   'Type Approval Cert No: ',
@@ -118,12 +120,16 @@ class SecondGen(Gen2Error):
 
             ##BIT 44-90 Encoded GNSS location
             self.latitude = Func.getlatitude(self.bits[44:67])
+            if 'Invalid' in self.latitude[0]:
+                self.errors.append(self.latitude[0])
             self.tablebin.append(['44-66',
                                   self.bits[44:67],
                                   'Latitude:',
                                   self.latitude[0]])
 
             self.longitude = Func.getlongitude(self.bits[67:91])
+            if 'Invalid' in self.longitude[0]:
+                self.errors.append(self.longitude[0])
             self.tablebin.append(['67-90',
                                   self.bits[67:91],
                                   'Longitude:',
@@ -288,7 +294,7 @@ class SecondGen(Gen2Error):
                                       'Encoded BCH'])
                 ##Calculate the BCH
                 self.calculatedBCH = Func.calcBCH(self.bits[1:], 0, 202, 250)
-                #self.bchstring=writebch.calcBCH(self.bits[1:], 0, 202, 250)[1]
+                self.bchstring=writebch.calcBCH(self.bits[1:], 0, 202, 250)[1]
 
                 self.tablebin.append(['Calculated',
                                       self.calculatedBCH,
@@ -299,9 +305,10 @@ class SecondGen(Gen2Error):
                 bcherr= self.BCHerrors = Func.errors(self.calculatedBCH, self.bits[203:])
                 if bcherr > 0 :
                     bcherror='ERROR! COMPUTED BCH DOES NOT MATCH ENCODED BCH!!'
+                    self.errors.append(bcherror)
                 else:
                     bcherror = 'VALID BCH: COMPUTED BCH MATCHES'
-                self.errors.append(bcherror)
+
                 self.tablebin.append(['','','',bcherror])
             elif len(self.bits)==203:
                 # if user enters a hex 51 excluding bch, then this ,means 202 information bits plus stub 0 minues the 2 digits of front padding
@@ -325,16 +332,18 @@ class SecondGen(Gen2Error):
             self.tablebin.append(['Unique ID','Second Generation','',''])
             self.tablebin.append(['1',
                                   self.bits[1],
-                                  'should be 1',
+                                  'SGB requires this bit value be 1',
                                   ['ERROR', 'OK'][int(self.bits[1])]])
             if self.bits[1]=='0':
                 self.validhex = False
+                self.errors.append('Error: SGB beacon UIN fixed first bit not set to 1')
 
             ##BIT 2-11 Country code
             self.countryCode = Func.bin2dec(self.bits[2:12])
             self.countryName = Func.countryname(self.countryCode)
             if self.countryName=='Unknown MID':
                 self.validhex=False
+                self.errors.append('Error: Bad country code: ' + self.countryName)
             self.tablebin.append(['2-11',
                                   self.bits[2:12],
                                   'Country code:',
@@ -345,6 +354,7 @@ class SecondGen(Gen2Error):
             else:
                 status_check = 'ERROR'
                 self.validhex = False
+                self.errors.append('Error: Bits 12-14 should be 101')
             self.tablebin.append(['12-14',
                                   self.bits[12:15],
                                   'Should be 101',
@@ -352,8 +362,9 @@ class SecondGen(Gen2Error):
             ##BIT 15-30  Type Approval Certificate #
             self.tac = Func.bin2dec(self.bits[15:31])
             if self.tac<10000:
-                warn='<strong>{}</strong><br> WARNING! SGB specifications requires TAC No >=10,000'.format(self.tac)
+                warn='Type Approval # {} :: WARNING! SGB specifications requires TAC No >=10,000'.format(self.tac)
                 self.validhex = False
+                self.errors.append(warn)
             else:
                 warn=str(self.tac)
             self.tablebin.append(['15-30',
@@ -462,9 +473,9 @@ class SecondGen(Gen2Error):
 
     def btype(self):
         if self.type!='uin':
-            return Func.getBeaconType(self.bits[138:140])
+            return Func.getBeaconType(self.bits[138:141])
         else:
-            return 'SGB UIN s/n: {}'.format(self.serialNum)
+            return 'UIN s/n: {}'.format(self.serialNum)
 
     def vesselIDfill(self,deduct_offset,bits):
 
@@ -472,7 +483,9 @@ class SecondGen(Gen2Error):
         self.vesselID = bits[0:3]
         self.tablebin.append([self.bitlabel(91,93,deduct_offset), self.vesselID , 'Vessel ID Type', Func.getVesselid(self.vesselID)])
         if self.vesselID == '111' and self.bits[43]=='0':
-            self.tablebin.append(['','','Reserved for system testing','ERROR! Test protocol bit 43 is zero'])
+            e='ERROR! Bit 43 is 0 for system testing message. When vessel ID bits are set to 111, vessel id field is reserved for syestem testing and the test bit 43 must be 1 for non-operational use.'
+            self.tablebin.append(['','Vessel ID','Reserved for system testing',e])
+            self.errors.append(e)
             self.validhex=False
 
         ##############################################
@@ -486,13 +499,15 @@ class SecondGen(Gen2Error):
 
                 self.tablebin.append([self.bitlabel(94,137,deduct_offset),
                                       bits[3:47],
-                                      'Vessel ID type is none',
-                                      'All 0 - OK'])
+                                      'Vessel ID',
+                                      'With vessel id type set to none (000), bits 94-137 all 0. Valid'])
             else:
+                e='Warning: With Vessel ID type set to none (000), bits 94-137 should be all 0 (unless national assigned)'
                 self.tablebin.append([self.bitlabel(94, 137,deduct_offset),
                                       bits[3:47],
-                                      'Vessel ID type is none',
-                                      'Unless national assigned, should be all 0'])
+                                      'Vessel ID',
+                                      e])
+                self.errors.append(e)
                 self.validhex = False
         ###########################
         # Vessel 1: Maritime MMSI #
@@ -628,25 +643,26 @@ class SecondGen(Gen2Error):
 
             self.tablebin.append([self.bitlabel(94, 137, deduct_offset),
                                   bits[3:47],
-                                  'Reserved for system testing','OK. Test protocol bit 43 set to 1. May contain information; default  bits 94-137 - 0s'])
+                                  'Vessel ID','Reserved for system testing and test protocol bit 43 set to 1. Bits may contain information whereas default  bits 94-137 normally 0s'])
         elif self.vesselID == '111' and self.bits[43]=='0':
             self.tablebin.append([self.bitlabel(94, 137, deduct_offset),
                                   bits[3:47],
-                                  'Reserved for system testing',
-                                  ''])
+                                  'Vessel ID',
+                                  'Reserved for system testing'])
         elif self.vesselID == '110':
+            e='ERROR! Vessel ID type 110 not defined by T.018.  Should not be used'
             self.tablebin.append([self.bitlabel(94, 137, deduct_offset),
                                   bits[3:47],
                                   'Spare',
-                                  'ERROR! Not defined by T.018.  Should not be used'])
+                                  e])
+            self.errors.append(e)
             self.validhex = False
 
 
     def gettac(self):
         return self.tac
 
-    def protocoltype(self):
-        return 'Second Generation Beacon'
+
 
     def loctype(self):
         return 'na - SGB'
