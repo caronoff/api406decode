@@ -48,8 +48,15 @@ def jsonhex():
 def decode(hexcode):
     try:
         beacon = decodehex2.Beacon(hexcode)
+        res = db.get_item(Key={'id': 'counter'})
+        value = res['Item']['counter_value'] + 1
+        res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
+                             ExpressionAttributeValues={':value': value}, )
+        hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, })
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
+
+
     return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),protocol=beacon.protocoltype())
 
 @app.route('/',methods=['GET'])
