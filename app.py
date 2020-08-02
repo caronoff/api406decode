@@ -40,7 +40,7 @@ def jsonhex():
         hextable.put_item(Item = { 'entry_id': str(value), 'hexcode': hexcode,}  )
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
-    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype())
+    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),first_or_second_gen=beacon.gentype)
 
 
 
@@ -60,7 +60,7 @@ def decode(hexcode):
         return jsonify(error=[err.value,err.message])
 
 
-    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype)
+    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype, errors=beacon.errors)
 
 @app.route('/',methods=['GET'])
 def api():
