@@ -27,20 +27,52 @@ def counter_increase():
     return jsonify({'counter': str(value)})
 
 
+
+
 @app.route('/json', methods=['PUT'])
 def jsonhex():
     req_data = request.get_json()
-    hexcode = req_data['hexcode']
-    try:
-        beacon = decodehex2.Beacon(hexcode)
-        res = db.get_item(Key={'id': 'counter'})
-        value = res['Item']['counter_value'] + 1
-        res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
-                             ExpressionAttributeValues={':value': value}, )
-        hextable.put_item(Item = { 'entry_id': str(value), 'hexcode': hexcode,}  )
-    except decodehex2.HexError as err:
-        return jsonify(error=[err.value,err.message])
-    return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),first_or_second_gen=beacon.gentype)
+    if type(req_data)== list:
+        hexcode = req_data
+    elif type(req_data) == dict:
+        hexcode = req_data['hexcode']
+    else:
+        return jsonify(error=['bad json header request','hexcode not found'])
+
+    if type(hexcode)==str:
+        try:
+            beacon = decodehex2.Beacon(hexcode)
+            res = db.get_item(Key={'id': 'counter'})
+            value = res['Item']['counter_value'] + 1
+            res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
+                                 ExpressionAttributeValues={':value': value}, )
+            hextable.put_item(Item = { 'entry_id': str(value), 'hexcode': hexcode,}  )
+        except decodehex2.HexError as err:
+            return jsonify(error=[err.value,err.message])
+        return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),first_or_second_gen=beacon.gentype)
+    elif type(hexcode)==list:
+        decodedic={}
+        for h in hexcode:
+            try:
+                beacon = decodehex2.Beacon(h['hexcode'])
+                res = db.get_item(Key={'id': 'counter'})
+                value = res['Item']['counter_value'] + 1
+                res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
+                                     ExpressionAttributeValues={':value': value}, )
+                hextable.put_item(Item={'entry_id': str(value), 'hexcode': h['hexcode'], })
+                decodedic[h['hexcode']]={
+                    'mid':beacon.get_mid(),
+                    'country':beacon.get_country(),
+                    'msgtype':beacon.type,
+                    'tac':beacon.gettac(),
+                    'beacontype':beacon.btype(),
+                    'first_or_second_gen':beacon.gentype
+                }
+            except decodehex2.HexError as err:
+                decodedic[h['hexcode']]={'errval': err.value,'errmsg':err.message}
+        return jsonify(decodedic)
+
+
 
 
 
