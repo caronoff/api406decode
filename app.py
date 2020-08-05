@@ -26,51 +26,52 @@ def counter_increase():
     res = db.update_item(    Key={'id': 'counter'},    UpdateExpression='set counter_value=:value',    ExpressionAttributeValues={':value': value},  )
     return jsonify({'counter': str(value)})
 
+def decoded_beacon(hexcode):
+    try:
+        beacon = decodehex2.Beacon(hexcode)
+        res = db.get_item(Key={'id': 'counter'})
+        value = res['Item']['counter_value'] + 1
+        res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
+                             ExpressionAttributeValues={':value': value}, )
+        hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, })
+    except decodehex2.HexError as err:
+        return {'error':[err.value, err.message]}
+    return {
+                    'mid':beacon.get_mid(),
+                    'country':beacon.get_country(),
+                    'msgtype':beacon.type,
+                    'tac':beacon.gettac(),
+                    'beacontype':beacon.btype(),
+                    'first_or_second_gen':beacon.gentype,
+                    'errors' : beacon.errors
+                }
 
 
 
 @app.route('/json', methods=['PUT'])
 def jsonhex():
+    decodedic = {}
     req_data = request.get_json()
     if type(req_data)== list:
         hexcode = req_data
     elif type(req_data) == dict:
         hexcode = req_data['hexcode']
     else:
-        return jsonify(error=['bad json header request','hexcode not found'])
-
+        return jsonify(error=['bad json header request','hexcode key not found'])
     if type(hexcode)==str:
-        try:
-            beacon = decodehex2.Beacon(hexcode)
-            res = db.get_item(Key={'id': 'counter'})
-            value = res['Item']['counter_value'] + 1
-            res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
-                                 ExpressionAttributeValues={':value': value}, )
-            hextable.put_item(Item = { 'entry_id': str(value), 'hexcode': hexcode,}  )
-        except decodehex2.HexError as err:
-            return jsonify(error=[err.value,err.message])
-        return jsonify(mid=beacon.get_mid(),country=beacon.get_country(),msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(),first_or_second_gen=beacon.gentype)
+        decodedic[hexcode]=decoded_beacon(hexcode)
+
     elif type(hexcode)==list:
-        decodedic={}
+        i=0
         for h in hexcode:
+            i+=1
             try:
-                beacon = decodehex2.Beacon(h['hexcode'])
-                res = db.get_item(Key={'id': 'counter'})
-                value = res['Item']['counter_value'] + 1
-                res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
-                                     ExpressionAttributeValues={':value': value}, )
-                hextable.put_item(Item={'entry_id': str(value), 'hexcode': h['hexcode'], })
-                decodedic[h['hexcode']]={
-                    'mid':beacon.get_mid(),
-                    'country':beacon.get_country(),
-                    'msgtype':beacon.type,
-                    'tac':beacon.gettac(),
-                    'beacontype':beacon.btype(),
-                    'first_or_second_gen':beacon.gentype
-                }
-            except decodehex2.HexError as err:
-                decodedic[h['hexcode']]={'errval': err.value,'errmsg':err.message}
-        return jsonify(decodedic)
+                decodedic[h['hexcode']] = decoded_beacon(h['hexcode'])
+            except TypeError:
+                decodedic[str(h)] = decoded_beacon(str(h))
+            except KeyError:
+                decodedic[str(i)] = {'error':['bad json header request', 'hexcode key not found at item {}'.format(i)]}
+    return jsonify(hexcode=decodedic)
 
 
 
