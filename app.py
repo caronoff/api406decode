@@ -37,6 +37,7 @@ def decoded_beacon(hexcode):
     except decodehex2.HexError as err:
         return {'error':[err.value, err.message]}
     return {
+                    'hexcode':hexcode,
                     'mid':beacon.get_mid(),
                     'country':beacon.get_country(),
                     'msgtype':beacon.type,
