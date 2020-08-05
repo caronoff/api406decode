@@ -36,10 +36,10 @@ def decoded_beacon(hexcode):
         hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, })
     except decodehex2.HexError as err:
         return {'error':[err.value, err.message]}
-    if beacon.errrors:
-        has_errors='True'
+    if beacon.errors:
+        has_errors=True
     else:
-        has_errors='False'
+        has_errors=False
     return {
                     'hexcode':hexcode,
                     'has_errors':has_errors,
