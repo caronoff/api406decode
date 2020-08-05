@@ -71,7 +71,7 @@ def jsonhex():
                 decodedic[str(h)] = decoded_beacon(str(h))
             except KeyError:
                 decodedic[str(i)] = {'error':['bad json header request', 'hexcode key not found at item {}'.format(i)]}
-    return jsonify(hexcode=decodedic)
+    return jsonify(decodedic)
 
 
 
