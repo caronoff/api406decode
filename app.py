@@ -37,9 +37,9 @@ def decoded_beacon(hexcode):
     except decodehex2.HexError as err:
         return {'error':[err.value, err.message]}
     if beacon.errrors:
-        has_errors=True
+        has_errors='True'
     else:
-        has_errors=False
+        has_errors='False'
     return {
                     'hexcode':hexcode,
                     'has_errors':has_errors,
