@@ -665,7 +665,7 @@ class SecondGen(Gen2Error):
 
 
     def loctype(self):
-        return 'na - SGB'
+        return 'SGB'
 
     def get_country(self):
         return str(self.countryCode) + ' ' + str(self.countryName)

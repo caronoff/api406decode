@@ -101,6 +101,7 @@ class BeaconFGB(HexError):
     def processHex(self, strhex):
         self.bchstring = ''
         self.hex15 =''
+        self.bad='bad call'
         self.bch1 = self.bch2 = self.tac = 'na'
         self.courseloc = ('na', 'na')
         self.location = ('na', 'na')
@@ -509,7 +510,7 @@ class BeaconFGB(HexError):
         #   Bit 37-39: 100  National User Protocol                                   #
         ##############################################################################        
         elif typeuserprotbin=='100' :
-            self._loctype = 'National User'
+            self._loctype = 'National User Protocol'
             self._protocol=(self.bin[26],definitions.protocol[self.bin[26]],typeuserprotbin,definitions.userprottype[typeuserprotbin])
             
             self.tablebin.append(['37-39',str(self.bin[37:40]),'User protocol type',definitions.userprottype[typeuserprotbin]])
@@ -1146,6 +1147,9 @@ class Beacon(HexError):
 
     def get_mid(self):
         return self.beacon.get_mid()
+
+    def __getattr__(self, name):
+        return 'Beacon does not have {} attribute.'.format(str(name))
 
 def beaconcountry(hexcode):
     try:

@@ -26,7 +26,7 @@ def counter_increase():
     res = db.update_item(    Key={'id': 'counter'},    UpdateExpression='set counter_value=:value',    ExpressionAttributeValues={':value': value},  )
     return jsonify({'counter': str(value)})
 
-def decoded_beacon(hexcode):
+def decoded_beacon(hexcode,fieldlst=[]):
     try:
         beacon = decodehex2.Beacon(hexcode)
         res = db.get_item(Key={'id': 'counter'})
@@ -40,10 +40,10 @@ def decoded_beacon(hexcode):
         has_errors=True
     else:
         has_errors=False
-    return {
+
+    decodedic={
                     'hexcode':hexcode,
                     'has_errors':has_errors,
-                    'mid':beacon.get_mid(),
                     'country':beacon.get_country(),
                     'msgtype':beacon.type,
                     'tac':beacon.gettac(),
@@ -53,28 +53,55 @@ def decoded_beacon(hexcode):
                 }
 
 
+    dispatch = {'mid':beacon.get_mid(),
+                'msg_note':beacon.genmsg,
+                'loc_prot_fixed_bits':beacon.fbits(),
+                'protocol_type':beacon.loctype(),
+                'uin':beacon.hexuin()
+            }
+    for fld in fieldlst:
+        if dispatch.__contains__(fld):
+            decodedic[fld]=dispatch[fld]
+        else:
+            decodedic[fld] = '{} not a valid field'.format(fld)
+
+    return decodedic
+
+
 
 @app.route('/json', methods=['PUT'])
 def jsonhex():
     decodedic = {}
+    fieldlst= []
     req_data = request.get_json()
     if type(req_data)== list:
         hexcode = req_data
     elif type(req_data) == dict:
-        hexcode = req_data['hexcode']
+        try:
+            hexcode = req_data['hexcode']
+        except KeyError:
+            return jsonify(error=['bad json header request', 'hexcode key not found'])
+        try:
+            fieldlst= req_data['decode_flds']
+            if type(fieldlst)==str:
+                fieldlst =[req_data['decode_flds']]
+
+        except KeyError:
+            pass
+
     else:
         return jsonify(error=['bad json header request','hexcode key not found'])
     if type(hexcode)==str:
-        decodedic[hexcode]=decoded_beacon(hexcode)
+        decodedic[hexcode]=decoded_beacon(hexcode,fieldlst)
 
     elif type(hexcode)==list:
         i=0
         for h in hexcode:
             i+=1
             try:
-                decodedic[h['hexcode']] = decoded_beacon(h['hexcode'])
+                decodedic[h['hexcode']] = decoded_beacon(h['hexcode'],fieldlst)
             except TypeError:
-                decodedic[str(h)] = decoded_beacon(str(h))
+                decodedic[str(h)] = decoded_beacon(str(h),fieldlst)
             except KeyError:
                 decodedic[str(i)] = {'error':['bad json header request', 'hexcode key not found at item {}'.format(i)]}
     return jsonify(decodedic)
