@@ -41,19 +41,18 @@ def decoded_beacon(hexcode,fieldlst=[]):
     else:
         has_errors=False
 
-    decodedic={
-                    'hexcode':hexcode,
-                    'has_errors':has_errors,
-                    'country':beacon.get_country(),
-                    'msgtype':beacon.type,
-                    'tac':beacon.gettac(),
-                    'beacontype':beacon.btype(),
-                    'first_or_second_gen':beacon.gentype,
-                    'errors' : beacon.errors
+    decodedic={    'country':beacon.get_country()
                 }
 
 
-    dispatch = {'mid':beacon.get_mid(),
+    dispatch = {'hexcode':hexcode,
+                'has_errors':has_errors,
+                'msgtype':beacon.type,
+                'tac':beacon.gettac(),
+                'beacontype':beacon.btype(),
+                'first_or_second_gen':beacon.gentype,
+                'errors' : beacon.errors,
+                'mid':beacon.get_mid(),
                 'msg_note':beacon.genmsg,
                 'loc_prot_fixed_bits':beacon.fbits(),
                 'protocol_type':beacon.loctype(),
