@@ -836,7 +836,6 @@ class BeaconFGB(HexError):
                 self.hex15 = Fcn.bin2hex(self.bin[26:67] + default)
 
 
-
             self._loctype=definitions.locprottype[typelocprotbin]
             self.tablebin.append(['37-40',str(self.bin[37:41]),'Location protocol','{}'.format(self._loctype)])
             tano=str(Fcn.bin2dec(self.bin[43:53])).zfill(3)

@@ -91,6 +91,7 @@ def jsonhex():
 
     else:
         return jsonify(error=['bad json header request','hexcode key not found'])
+
     if type(hexcode)==str:
         decodedic[hexcode]=decoded_beacon(hexcode,fieldlst)
 
