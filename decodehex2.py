@@ -99,6 +99,7 @@ class BeaconFGB(HexError):
             self.processHex(str(strhex))
 
     def processHex(self, strhex):
+        self.strhex=strhex
         self.bchstring = ''
         self.hex15 =''
         self.bad='bad call'
@@ -668,7 +669,7 @@ class BeaconFGB(HexError):
             #   ELT 24 bit address
             elif typelocprotbin=='0011':
                 
-                
+                #print(self.strhex)
                 self.tablebin.append(['41-64',str(self.bin[41:65]),
                                       'Aircraft 24 bit address',
                                       '{} hex ({} decimal)'.format(str(Fcn.bin2hex2(self.bin[41:65],6)),str(Fcn.bin2dec(self.bin[41:65])))

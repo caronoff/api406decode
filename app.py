@@ -2,6 +2,7 @@ from flask import Flask,jsonify,request
 import decodehex2
 import boto3
 import os
+import timeit
 from dotenv import load_dotenv
 load_dotenv('.env')
 app = Flask(__name__)
@@ -66,10 +67,33 @@ def decoded_beacon(hexcode,fieldlst=[]):
 
     return decodedic
 
+def dispatch_list(fieldlst):
+    decodedic = {'country': beacon.get_country()
+                 }
+    dispatch = {'hexcode': hexcode,
+                'has_errors': has_errors,
+                'msgtype': beacon.type,
+                'tac': beacon.gettac(),
+                'beacontype': beacon.btype(),
+                'first_or_second_gen': beacon.gentype,
+                'errors': beacon.errors,
+                'mid': beacon.get_mid(),
+                'msg_note': beacon.genmsg,
+                'loc_prot_fixed_bits': beacon.fbits(),
+                'protocol_type': beacon.loctype(),
+                'uin': beacon.hexuin()
+                }
+    for fld in fieldlst:
+        if dispatch.__contains__(fld):
+            decodedic[fld]=dispatch[fld]
+        else:
+            decodedic[fld] = '{} not a valid field'.format(fld)
+    return decodedic
 
 
 @app.route('/json', methods=['PUT'])
 def jsonhex():
+    start = timeit.timeit()
     decodedic = {}
     fieldlst= []
     req_data = request.get_json()
@@ -97,13 +121,18 @@ def jsonhex():
     elif type(hexcode)==list:
         i=0
         for h in hexcode:
+            #print(h)
             i+=1
             try:
                 decodedic[h['hexcode']] = decoded_beacon(h['hexcode'],fieldlst)
+                #print(i)
             except TypeError:
                 decodedic[str(h)] = decoded_beacon(str(h),fieldlst)
             except KeyError:
                 decodedic[str(i)] = {'error':['bad json header request', 'hexcode key not found at item {}'.format(i)]}
+    end = timeit.timeit()
+    print(start,end,end - start)
+
     return jsonify(decodedic)
 
 
