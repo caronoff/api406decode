@@ -131,8 +131,8 @@ def jsonhex():
             except KeyError:
                 decodedic[str(i)] = {'error':['bad json header request', 'hexcode key not found at item {}'.format(i)]}
     end = timeit.timeit()
-    print(start,end,end - start)
-
+    #print(start,end,end - start)
+    decodedic['server_exection_time']=str(end-start)
     return jsonify(decodedic)
 
 
