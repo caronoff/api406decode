@@ -63,7 +63,7 @@ def decoded_beacon(hexcode,fieldlst=[]):
         if dispatch.__contains__(fld):
             decodedic[fld]=dispatch[fld]
         else:
-            decodedic[fld] = '{} not a valid field'.format(fld)
+            decodedic[fld] = '{} not a valid fieldname'.format(fld)
 
     return decodedic
 
