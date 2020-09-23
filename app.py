@@ -63,7 +63,7 @@ def decoded_beacon(hexcode,fieldlst=[]):
         if dispatch.__contains__(fld):
             decodedic[fld]=dispatch[fld]
         else:
-            decodedic[fld] = '{} not a valid fieldname'.format(fld)
+            decodedic[fld] = '{} does not exist'.format(fld)
 
     return decodedic
 
@@ -132,7 +132,7 @@ def jsonhex():
                 decodedic[str(i)] = {'error':['bad json header request', 'hexcode key not found at item {}'.format(i)]}
     end = timeit.timeit()
     #print(start,end,end - start)
-    decodedic['server_exection_time']=str(end-start)
+    decodedic['server_exection_time']={'seconds': str(end-start)}
     return jsonify(decodedic)
 
 
