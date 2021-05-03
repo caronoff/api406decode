@@ -5,11 +5,17 @@
 # Shared Gen 1 & Gen 2 definitions #
 ####################################
 # Includes 1st and 2nd Gen 
+# Constants
+
+
 
 import re
 from moreinfo import moreinfo
 from countries import countrydic
 
+ELT_DT_LOC = 'ELT-DT Location Protocol'
+NATIONAL_USER = ' DUMMY '
+RLS_LOC = 'RLS Location Protocol'
 def is_number(s):
     try:
         float(s)
@@ -85,8 +91,8 @@ auxlocdevice = {'00':'No Auxiliary Radio-locating Device',
                }
 
 #Bits 37 to 40
-locprottype = {'0000':'Unknown location type',
-               '0001':'Unknown location type',
+locprottype = {'0000':'Undefined location type (spare)',
+               '0001':'Undefined location type (spare)',
                '0010':'Standard Location Protocol EPIRB-MMSI',
                '0110':'Standard Location Protocol - EPIRB (Serial)',
                '1010':'National location protocol - EPIRB',
@@ -95,10 +101,10 @@ locprottype = {'0000':'Unknown location type',
                '0100':'Standard Location Protocol - ELT (Serial)',
                '0101':'Std Loc. Serial ELT - Aircraft Operator Designator Protocol',
                '1000':'National location protocol - ELT',
-               '1001':'ELT - DT Location Protocol - ELT',
+               '1001': ELT_DT_LOC,
                '0111':'Standard Location Protocol - PLB (Serial)',
                '1011':'National location protocol - PLB',
-               '1101':'RLS Location Protocol',
+               '1101':RLS_LOC,
                '1110':'Standard Location Protocol - Test',
                '1111':'National location protocol - Test'
               }
@@ -108,7 +114,7 @@ locprottype = {'0000':'Unknown location type',
 eltdt = {'00':'Aircraft 24 bit address',
          '01': 'Aircraft operators designator and serial number',
          '10': 'TAC with serial number',
-         '11': 'Location Test Protocol'
+         '11': 'Spare (reserved for future use)'
         }
 
 stdloctypes = ['0010', '0011', '0100', '0101', '0110', '0111', '1110', '0000', '1100', '0001']
@@ -465,8 +471,17 @@ class Air24bit_secgen(Secondgen):
 
     def getresult(self):
         elt24bitaddress_serial = str(self.formfields.get('elt24bitaddress_serialuser'))
+
+        aircraftoperator_input = str(self.formfields.get('aircraftoperator_input'))
+        if len(aircraftoperator_input) == 0:
+            acftop='0'*15
+        else:
+            acftop = self.getbaudot(aircraftoperator_input, 3, 3, 'Aircraft operator must be 3 digits', 'id_aircraftoperatorerror', short=True)
+
+
         sn = self.getserial(elt24bitaddress_serial, 0, 16777215, 'Serial number range (0 - 16,777,215)', 24,'id_elt24biterror')
-        self.sethexcode('1', self.mid, '101', self.ta, self.sn, self.testprotocol,self.ptype, sn,'0'*20)
+        #self.sethexcode('1', self.mid, '101', self.ta, self.sn, self.testprotocol,self.ptype, sn,'0'*20)
+        self.sethexcode('1', self.mid, '101', self.ta, self.sn, self.testprotocol, self.ptype, sn, acftop,'0' * 5)
         return self.results
 
 class Systemtest_secgen(Secondgen):
@@ -489,10 +504,10 @@ class Aircraftoperator_secgen(Secondgen):
     def getresult(self):
 
         aircraftoperator_input = str(self.formfields.get('aircraftoperator_input'))
-        acftop = self.getbaudot(aircraftoperator_input, 3, 3, 'Aircraft operator must be 3 digits','id_aircraftoperatorerror')
+        acftop = self.getbaudot(aircraftoperator_input, 3, 3, 'Aircraft operator must be 3 digits','id_aircraftoperatorerror',short=True)
         sn_input= str(self.formfields.get('aircraftserial_input'))
         sn= self.getserial(sn_input, 0, 4095, 'Serial number range (0 - 4,095)', 12,'id_aircraftserialerror')
-        self.sethexcode('1', self.mid, '101', self.ta, self.sn,self.testprotocol,self.ptype, acftop, sn  ,'1'*14)
+        self.sethexcode('1', self.mid, '101', self.ta, self.sn,self.testprotocol,self.ptype, acftop, sn  ,'1'*17)
         return self.results
 
 
@@ -766,7 +781,7 @@ enc_alt = {'0000':['0', '400 m (1312 ft)'],
           }
 
 
-homer = {'0':'121.5 MHz Homing device not present', '1':'121.5 MHz Homing device present'}
+homer = {'0':'Not included in beacon', '1':'Included in beacon'}
 
 
 ####################
@@ -821,7 +836,7 @@ beacon_type = {'000':'ELT (excludes ELT(DT))',
                '100':'Spare',
                '101':'Spare',
                '110':'Spare',
-               '111':'Spare'}
+               '111':'System beacon'}
 
 beacon_rls = {'00':'No automatic RLM Type-1 received - No manual RLM Type 2 received',
               '01':'No automatic RLM Type 1 received -  Manual RLM Type 2 received ',

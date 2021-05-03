@@ -19,22 +19,30 @@ def rotating0(bits):
     bits = '0'+ bits
 
 
-    ##BIT 5-10 (159-164) Elapsed time since activation (0 to 63 hours in 1 hour steps)
+    ##BIT 5-10 (159-164) Elapsed hours since activation (0 to 63 hours in 1 hour steps)
     t_act = min(Func.bin2dec(bits[5:11]),63)
-
+    if t_act==63:
+        hours_act=str(t_act) + ' hours or more'
+    else:
+        hours_act=str(t_act) + ' hours'
     rotatingbin.append(['159-164 (Rotating field 5-10)',
                         bits[5:11],
-                        'Elapsed time since activation:',
-                        str(t_act) + ' hours'])
+                        'Elapsed time since activation (hours):',
+                        hours_act])
 
     ##BIT 11-21 (165-175) Time from last encoded location (0 to 2046 minutes in 1 minute steps)
     t_encoded = Func.bin2dec(bits[11:22])
     if int(t_encoded)==2047 :
-        t_encoded = 'n/a'
+        min_elapse = '2046 minues or more. Default value set. Beacon has not yet obtained a location.'
+    elif int(t_encoded)==2046 :
+        min_elapse = '2046 minutes or more'
+    else:
+        min_elapse = str(t_encoded) + ' minutes'
+
     rotatingbin.append(['165-175 (Rotating field 11-21)',
                         bits[11:22],
-                        'Minutes since last encoded location:',
-                        str(t_encoded)])
+                        'Elapsed time since last encoded location (minutes):',
+                        min_elapse])
 
     ##BIT 22-31 (176-185) Altitude of encoded location
     altitude = Func.getaltitude(bits[22:32])
@@ -104,13 +112,19 @@ def rotating1(bits):
     bits = '0'+ bits
 
     ##BIT 5-21 (159-175) Time of last encoded location
-    time = Func.sec2utc(bits[5:22])
+    ## update Ver 2.0
+    if bits[5:22]=='1'*17:
+        time = 'UTC time is not available or the time is more than 24 hours old'
+    else:
+        time = Func.sec2utc(bits[5:22])
+    ## endupdate
     rotatingbin.append(['159-175 (Rotating field 5-21)',
                         bits[5:22],
                         'Time of last encoded location',
                         time])
 
     ##BIT 22-31 (176-185) Altitude of encoded location
+
     altitude = Func.getaltitude(bits[22:32])
     rotatingbin.append(['176-185 (Rotating field 22-31)',
                         bits[22:32],
