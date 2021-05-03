@@ -8,12 +8,20 @@ import definitions
 import time
 
 
+
+
 UIN = 'unique hexadecimal ID'
 BCH1='BCH-1 error correcting code'
 BCH2='BCH-2 error correcting code'
 BCH_ERRORS_PRESENT ='BCH errors present in message'
 INVALID_UIN =' (INVALID UIN) Per DDP section 4.2.1.1.4, due to errors in message, cannot construct valid UIN therefore bits 26-85 not defaulted'
-
+SHORT_MSG = 'Short Msg'
+LONG_MSG = 'Long Msg'
+SHORT_OR_LONG_MSG = 'Short Msg/Long Msg'
+UIN = 'unique hexadecimal ID'
+INVALID_HEX = 'Not a valid Hex ID'
+LOCATION_PROTOCOL_FLAG = 'Location, further information provided in "Protocol Code" '
+USER_PROTOCOL_FLAG = 'User, further information provided in "Protocol Code" '
 
 class Bch:
     def __init__(self, testbin, mtype):
@@ -21,11 +29,11 @@ class Bch:
         self.complete = '0'
         bch1errors=bch2errors=0
 
-        if mtype in ['Short Msg', 'Long Msg','Short Msg/Long Msg']:
+        if mtype in [SHORT_MSG, LONG_MSG,SHORT_OR_LONG_MSG]:
             bch1 = Fcn.calcbch(testbin, "1001101101100111100011", 25, 86, 107)
             bch1errors = self.errors(testbin[86:107], bch1)
 
-        if mtype in ['Long Msg','Short Msg/Long Msg']:
+        if mtype in [LONG_MSG,SHORT_OR_LONG_MSG]:
             bch2 = Fcn.calcbch(testbin, '1010100111001', 107, 133, 145)
             bch2errors = self.errors(testbin[133:145], bch2)
             if bch2errors == 0:
@@ -46,10 +54,20 @@ class Bch:
         return 'BCH-{} errors: {}'.format(str(n), self.bch[3+int(n)])
 
     def bch1calc(self):
-        return 'Calculated :  {bchcalc}   BCH 1 errors: {e}'.format(bchcalc=self.bch[0], e=self.bch[4])
+        result=''
+        if self.bch[4]==0:
+            result='BCH-1 code in message matches the recalculated BCH-1 from the PDF-1 field'
+        else:
+            result='ERROR! BCH-1 code in message does not match the recalculated BCH-1 from the PDF-1 field. (recalculated value:{bchcalc})'.format(bchcalc=self.bch[0])
+        return result
 
     def bch2calc(self):
-        return 'BCH-2 Calculated (133-144):  {bchcalc} BCH 2 errors: {e}'.format(bchcalc=self.bch[1], e=self.bch[5])
+        result = ''
+        if self.bch[5] == 0:
+            result = 'BCH-2 code in message matches the recalculated BCH-2 from the PDF-2 field'
+        else:
+            result = 'ERROR! BCH-2 code in message does not match the recalculated BCH-2 from the PDF-2 field. (recalculated value:{bchcalc})'.format(bchcalc=self.bch[1])
+        return result
 
     def writebch1(self):
         return 'BCH-1 Encoded: {bch1enc}   BCH-1 Calculated:  {bchcalc} BCH 1 errors: {e}'.format(bch1enc=self.bch[2], bchcalc=self.bch[0], e=self.bch[4])
@@ -121,6 +139,7 @@ class BeaconFGB(HexError):
         self._loctype=''
         bitsynch=''
         framesynch=''
+        correct_bch_errors=strhex
         if Fcn.hextobin(strhex):
             if len(strhex) == 15:
                 #   15 Hex does not use bit 25 - framesynch 24 bits 0 prefix plus bit 25 0 needs to be padded for bit range to match T.001
@@ -128,19 +147,36 @@ class BeaconFGB(HexError):
                 pad = '0'* 25
             elif len(strhex) == 22:
                 # if user does not enter framesynch 6 hex prefix, then need to prefix 24 bits 0
-                self.type = 'Short Msg'
+                self.type = SHORT_MSG
                 pad = '0' * 24
             elif len(strhex) == 28:
-                # if user enters 28 hex including the 6 hex framesynch then likely a short message
-                self.type = 'Short Msg'
+                # if user enters 28 hex including the 6 hex characters for 24 bit frame synch, then a short message type
+                self.type = SHORT_MSG
                 pad = ''
 
             elif len(strhex) == 30:
-                self.type = 'Long Msg'
+                self.type = LONG_MSG
+                ## Error correction attempt for when BCH portion does not match recomputed
+                _pdf1 = (Fcn.hextobin(strhex))[:61]
+                _bch1 = (Fcn.hextobin(strhex))[61:82]
+                bitflips1,newpdf1,newbch1 = bch1.pdf1_to_bch1(_pdf1,_bch1)
+                _pdf2=(Fcn.hextobin(strhex))[82:108]
+                _bch2=(Fcn.hextobin(strhex))[108:]
+                bitflips2,newpdf2,newbch2 = bch2.pdf2_to_bch2(_pdf2,_bch2)
+                if bitflips1 ==-1 or bitflips2 ==-1:
+                    self.errors.append('Too many bit errors to correct')
+                elif bitflips1>0 or bitflips2 > 0:
+                    _newbin=newpdf1 + newbch1 + newpdf2 + newbch2
+                    self.errors.append(' {} bad pdf1 bit and {} bad pdf2 bit'.format(bitflips1, bitflips2))
+                    self.errors.append('Corrected Message: {} '.format(Fcn.bin2hex(_newbin)))
+                    print(_newbin,len(_newbin),len(newpdf1),len(newbch1),len(newpdf2),len(newbch2))
+                else:
+                    pass
+
                 pad = '0' * 24
             elif len(strhex) == 36:
                 pad = ''
-                self.type = 'Long Msg'
+                self.type = LONG_MSG
 
             else:
                 self.type = 'Hex length of ' + str(len(strhex)) + '.' + '\nLength of First Generation Beacon Hex Code must be 15, 22,28, 30 or 36'
@@ -148,7 +184,7 @@ class BeaconFGB(HexError):
             self.hexcode=str(strhex)
 
         else:
-            self.type = 'Not a valid Hex ID'
+            self.type = INVALID_HEX
             raise HexError('FormatError',self.type)         
      
         # make a standard 144 bit (36 Hex) binary string.  '_' in front is to make string operations march the numbering and not start at position 0
@@ -188,38 +224,39 @@ class BeaconFGB(HexError):
         self._pflag=['Location','User'][int(protocolflag)]
 
         if self._pflag=='Location':
-            pflag='Location, further information provided in "Protocol Code" '
+            pflag=LOCATION_PROTOCOL_FLAG
         else:
-            pflag='User, further information provided in "Protocol Code" '
+            pflag=USER_PROTOCOL_FLAG
 
         self.tablebin.append(['26',self.bin[26],'Protocol Flag',pflag])
         self.tablebin.append(['27-36',self.bin[27:37],'Country code:',self.countrydetail.cname,definitions.moreinfo['country_code']])
         if 'Unknown MID' in self.countrydetail.cname:
             self.errors.append('Unknown Country Code')
 
-        if self.type == 'Short Msg' and self.bin[25] == '1':
+        if self.type == SHORT_MSG and self.bin[25] == '1':
             #Long message format should be 30 Hex or 36 Hex but the format flag is long.  Therefore, set type to Long Msg
-            self.type = 'Long Msg'
-        elif self.type == 'Long Msg' and self.bin[25]=='0':
-            # Long message format should be 30 Hex or 36 Hex but the format flag is short.  Therefore, Short Msg
-            self.type = 'Short Msg'
+            self.type = LONG_MSG
+        elif self.type == LONG_MSG and self.bin[25]=='0':
+            ## Long message format should be 30 Hex or 36 Hex but the format flag takes priority to define method type.
+            # Therefore, in this case bit 25 is 0 even though length size appears long, we deem this Short Msg
+            self.type = SHORT_MSG
 
-        if protocolflag == '0' and self.type != 'Short Msg':
+        if protocolflag == '0' and self.type != SHORT_MSG:
             self.bch = Bch(self.bin, self.type)
             self.locationProtocol()
         #   protocol == '1' 'User Protocol'
         #   type of user protocol located at bits 37-39    
-        elif protocolflag == '1' and self.type != 'Short Msg'  :
+        elif protocolflag == '1' and self.type != SHORT_MSG  :
             self.bch = Bch(self.bin, self.type)
             self.userProtocol()
 
-        if protocolflag == '0' and self.type == 'Short Msg':
+        if protocolflag == '0' and self.type == SHORT_MSG:
             self.tablebin.append(['Inconsistent', 'Error', 'Incomplete', 'Location protocol bit pattern with short message not allowed'])
-            self.type='Short Msg/Long Msg'
+            self.type=SHORT_OR_LONG_MSG
             self.bch = Bch(self.bin, self.type)
             self.locationProtocol()
 
-        elif protocolflag == '1' and self.type == 'Short Msg':
+        elif protocolflag == '1' and self.type == SHORT_MSG:
             self.tablebin.append(['Short Message type', '', '', ''])
             self.bch = Bch(self.bin, self.type)
             self.userProtocol()
@@ -526,7 +563,7 @@ class BeaconFGB(HexError):
                                       str(self.bin[133:145]),
                                           BCH2,
                                           str(self.bch.bch2calc()),definitions.moreinfo['bch2']])
-            self._loctype = 'User: {}'.format(definitions.userprottype[typeuserprotbin])
+            #self._loctype = 'User: {}'.format(definitions.userprottype[typeuserprotbin])
 
 
         if typeuserprotbin not in ['100','000','111'] and self.has_loc(): # and self.bch.complete=='1':
@@ -589,17 +626,6 @@ class BeaconFGB(HexError):
         
     def update_locd(self,_dec,_dir):        
         return '{:.3f}'.format(Fcn.latlongdir(_dir)*float(abs(_dec)))
-
-    def bchmatch(self):
-        bch1errors = 'No bch errors in pdf1/bch1'
-        bch2errors = 'No bch errors in pdf2/bch2'
-        if self.bch.bch1errors > 0 :
-            bch1errors='bch1 errors: {}'.format(self.bch.bch1errors)
-        if self.bch.bch2errors > 0:
-            bch2errors = 'bch2 errors: {}'.format(self.bch.bch2errors)
-
-        return '  '.join((bch1errors,bch2errors))
-
 
     def locationProtocol(self):      
         
@@ -710,10 +736,13 @@ class BeaconFGB(HexError):
                 self.tablebin.append(['75-85',str(self.bin[75:86]),'Longitude','{} ({})'.format(lng,declng)])
                 
                 if self.bin[107:111]=='1101':
-                    computed='107-110 should be 1101.  Passed.'
+                    computed='107-110 should be 1101'
                 else:
-                    computed= '107-110 :'  + self.bin[107:111] + '. Not  1101. Failed'
-                    self.errors.append(computed)
+                    if typelocprotbin in ['0000','0001']:
+                        computed= '107-110 : derived ('  + self.bin[107:111] + ')  Normally 1101 for operational beacon but valid for undefined location type (spare)'
+                    else:
+                        computed = '107-110 : derived (' + self.bin[107:111] + ') Error - Should be 1101 for operational location protocol beacon'
+                        self.errors.append(computed)
 
                 self.fixedbits=computed
                 self.tablebin.append(['86-106',str(self.bin[86:107]),BCH1,str(self.bch.bch1calc()),definitions.moreinfo['bch1']])
@@ -919,37 +948,47 @@ class BeaconFGB(HexError):
 
 
             #self.tablebin.append(['26-85',self.bin[26:67]+default,UIN,self.hex15])
-            self._loctype='ELT-DT Location'
-            self.tablebin.append(['37-40',str(self.bin[37:41]),'Protocol Code','{} {}'.format(btype,self._loctype)])
-            self.tablebin.append(['41-42',str(self.bin[41:43]),'ELT Type',definitions.eltdt[str(self.bin[41:43])]])
-            if str(self.bin[41:43])=='10':
-            # 10 bit TAC & Serial No
-                tano=str(Fcn.bin2dec(self.bin[43:53]))
-                self.tablebin.append(['43-52',str(self.bin[43:53]),'Tac No','#{}'.format(tano)])                      
-                self.tablebin.append(['53-66',str(self.bin[53:67]),'Serial No','#{}'.format(str(Fcn.bin2dec(self.bin[53:67])))])
-            elif str(self.bin[41:43])=='00':
-            #24 bit aircraft address
-                self.tablebin.append(['43-66',str(self.bin[43:67]),
-                                      'Aircraft 24 bit address',
-                                      '{} hex ({} decimal)'.format(str(Fcn.bin2hex2(self.bin[43:67],6)),str(Fcn.bin2dec(self.bin[43:67])))
-                                      ]
-                                     )
+            self._loctype=definitions.locprottype[typelocprotbin] #'ELT-DT Location'
+            self.tablebin.append(['37-40',str(self.bin[37:41]),'Protocol Code','{} - {}'.format(btype,self._loctype)])
+            self.tablebin.append(['41-42',str(self.bin[41:43]),'ELT Identity Type',definitions.eltdt[str(self.bin[41:43])]])
 
-            elif str(self.bin[41:43])=='01':
-            # Aircraft operator designator
-                self.tablebin.append(['43-57',str(self.bin[43:58]),'Aircraft Operator Designator (15 bit)',Fcn.baudot(self.bin,43,58,True),definitions.moreinfo['elt_dt_aircraftoperator']])
-                self.tablebin.append(['58-66',str(self.bin[58:67]),'Serial No Assigned by Operator',str(Fcn.bin2dec(self.bin[58:67]))])
-            elif str(self.bin[41:43])=='11':
+            if (str(self.bin[43:67]) == '0' * 24 or str(self.bin[43:67]) == '1' * 24) and str(self.bin[41:43]) != '11':
+                self.tablebin.append(['43-66', str(self.bin[43:67]), 'ELT(DT) test beacon','Test beacon type since bits 43-66 are all 0 or All 1, designates Test Protocol'])
+            else:
+                if str(self.bin[41:43])=='10':
+                # 10 bit TAC & Serial No
+                    tano=str(Fcn.bin2dec(self.bin[43:53]))
+                    self.tablebin.append(['43-52',str(self.bin[43:53]),'Tac No','#{}'.format(tano)])
+                    self.tablebin.append(['53-66',str(self.bin[53:67]),'Serial No','#{}'.format(str(Fcn.bin2dec(self.bin[53:67])))])
+                elif str(self.bin[41:43])=='00':
+                #24 bit aircraft address
+                    self.tablebin.append(['43-66',str(self.bin[43:67]),
+                                          'Aircraft 24 bit address',
+                                          '{} hex ({} decimal)'.format(str(Fcn.bin2hex2(self.bin[43:67],6)),str(Fcn.bin2dec(self.bin[43:67])))
+                                          ]
+                                         )
+
+                elif str(self.bin[41:43])=='01':
+                # Aircraft operator designator
+                    self.tablebin.append(['43-57',str(self.bin[43:58]),'Aircraft Operator Designator (15 bit)',Fcn.baudot(self.bin,43,58,True),definitions.moreinfo['elt_dt_aircraftoperator']])
+                    self.tablebin.append(['58-66',str(self.bin[58:67]),'Serial No Assigned by Operator',str(Fcn.bin2dec(self.bin[58:67]))])
+
+            if str(self.bin[41:43]) == '11':
+                self.tablebin.append(['43-66', str(self.bin[43:67]), 'Identification data','Undefined for ELT Identity type - Spare'])
+                if str(self.bin[43:67]) == '0' * 24 or str(self.bin[43:67]) == '1' * 24:
+                    self.tablebin.append(['-', '-', 'ELT(DT) test beacon','Test beacon type since bits 43-66 are all 0 or All 1, designates Test Protocol'])
+            #elif str(self.bin[41:43])=='11' prior to CSC-62:
             # ELT(DT) Location Test Protocol
-                self.tablebin.append(['43-66',str(self.bin[43:67]),'ELT(DT) Location Test Protocol','reserved'])
 
             latdelta,longdelta,ltmin,ltsec,lgmin,lgsec,ltoffset,lgoffset =(0,0,0,0,0,0,0,0)
             lat,declat,latdir =  Fcn.latitudeRLS(self.bin[67],self.bin[68:76])           
             lng,declng,lngdir =  Fcn.longitudeRLS(self.bin[76],self.bin[77:86])
             if 'Error' in lat:
-                self.errors.append(lat)
+                pass
+                #self.errors.append(lat)
             if 'Error' in lng:
-                self.errors.append(lng)
+                pass
+                #self.errors.append(lng)
             self.courseloc=(declat,declng)
 
             if self.type!='uin':
@@ -965,6 +1004,14 @@ class BeaconFGB(HexError):
                     if int(self.bin[113:])!=0:
                         self.tablebin.append(['133-144', str(self.bin[133:145]), BCH2, str(self.bch.bch2calc()),definitions.moreinfo['bch2']])
                 else: #proceed to decode location
+                    if 'Error' in lat:
+                        pass
+                        self.errors.append(lat)
+                    if 'Error' in lng:
+                        pass
+                        self.errors.append(lng)
+
+
                     self.tablebin.append(['67-75',str(self.bin[67:76]),'Latitude','{} ({})'.format(lat,declat)])
                     self.tablebin.append(['76-85',str(self.bin[76:86]),'Longitude','{} ({})'.format(lng,declng)])
                     self.tablebin.append(['86-106',str(self.bin[86:107]),BCH1,str(self.bch.bch1calc()),definitions.moreinfo['bch1']])
@@ -972,7 +1019,7 @@ class BeaconFGB(HexError):
                     meansbin = str(self.bin[107:109])
                     self.tablebin.append(['107-108',meansbin,'means of activation',means[meansbin]])
                     enc_altbin=str(self.bin[109:113])
-                    enc_altstr='altitude is between {} and {}'.format(definitions.enc_alt[enc_altbin][0],definitions.enc_alt[enc_altbin][1])
+                    enc_altstr='altitude is greater than {} up to and including {}'.format(definitions.enc_alt[enc_altbin][0],definitions.enc_alt[enc_altbin][1])
                     self.tablebin.append(['109-112',enc_altbin,'encoded altitude',enc_altstr])
                     finallat=finallng='Not Used'
                     enc_loc_fresh = {'00':'PDF-2 rotating field indicator',
@@ -982,7 +1029,7 @@ class BeaconFGB(HexError):
                                      }
                     enc_freshbin=str(self.bin[113:115])
                     if int(self.bin[113:]) != 0 :
-                        self.tablebin.append(['113-114', enc_freshbin, 'Encoded location freshness', enc_loc_fresh[enc_freshbin]])
+                        self.tablebin.append(['113-114', enc_freshbin, 'Encoded location freshness or PDF-2 rotating field indicator', enc_loc_fresh[enc_freshbin]])
 
                         if enc_freshbin!='00':
 
@@ -1002,7 +1049,7 @@ class BeaconFGB(HexError):
                                     self.errors.append('Unable to decode Aircraft 3LD in bits 115-132 (See * )')
 
                             self.tablebin.append(['115-132', str(self.bin[115:133]), 'Aircraft operator 3LD', op3ld])
-                            self.warnings.append('WARNING: This is a rotating first generation ELT-DT.  Do not rely on location information')
+                            self.warnings.append('WARNING: This is a rotating first generation ELT-DT.  Location information is a coarse position only because PDF-2 has information in rotating field. Hence location has with less resolution/accuracy than a message without the rotating field.')
                         self.tablebin.append(['133-144', str(self.bin[133:145]), BCH2, str(self.bch.bch2calc()),definitions.moreinfo['bch2']])
 
 
@@ -1091,7 +1138,7 @@ class Beacon(HexError):
         elif len(hexcode) == 30 :
             beacon=BeaconFGB(hexcode)
             self.gentype='first'
-            if beacon.type == 'Short Msg':
+            if beacon.type == SHORT_MSG:
                 self.genmsg = genmsgdic['30short']
             else:
                 self.genmsg = genmsgdic['30']
@@ -1101,7 +1148,7 @@ class Beacon(HexError):
             beacon=BeaconFGB(hexcode)
             self.gentype='first'
 
-            if beacon.type == 'Long Msg':
+            if beacon.type == LONG_MSG:
                 self.genmsg = genmsgdic['22long']
             else:
                 self.genmsg = genmsgdic['22']
@@ -1109,7 +1156,7 @@ class Beacon(HexError):
         elif len(hexcode) == 28:
             beacon = BeaconFGB(hexcode)
             self.gentype = 'first'
-            if beacon.type == 'Long Msg':
+            if beacon.type == LONG_MSG:
                 self.genmsg = genmsgdic['28long']
             else:
                 self.genmsg = genmsgdic['28']
@@ -1117,7 +1164,7 @@ class Beacon(HexError):
         elif len(hexcode) == 36:
             beacon=BeaconFGB(hexcode)
             self.gentype = 'first'
-            if beacon.type in ['Short Msg','Short Msg/Long Msg']:
+            if beacon.type in [SHORT_MSG,SHORT_OR_LONG_MSG]:
                 self.genmsg = genmsgdic['36short']
             else:
                 self.genmsg = genmsgdic['36']
