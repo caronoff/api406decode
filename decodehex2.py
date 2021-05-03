@@ -627,6 +627,17 @@ class BeaconFGB(HexError):
     def update_locd(self,_dec,_dir):        
         return '{:.3f}'.format(Fcn.latlongdir(_dir)*float(abs(_dec)))
 
+    def bchmatch(self):
+        bch1errors = 'No bch errors in pdf1/bch1'
+        bch2errors = 'No bch errors in pdf2/bch2'
+        if self.bch.bch1errors > 0 :
+            bch1errors='bch1 errors: {}'.format(self.bch.bch1errors)
+        if self.bch.bch2errors > 0:
+            bch2errors = 'bch2 errors: {}'.format(self.bch.bch2errors)
+
+        return '  '.join((bch1errors,bch2errors))
+
+
     def locationProtocol(self):      
         
         typelocprotbin=self.bin[37:41]        
@@ -979,6 +990,7 @@ class BeaconFGB(HexError):
                     self.tablebin.append(['-', '-', 'ELT(DT) test beacon','Test beacon type since bits 43-66 are all 0 or All 1, designates Test Protocol'])
             #elif str(self.bin[41:43])=='11' prior to CSC-62:
             # ELT(DT) Location Test Protocol
+                self.tablebin.append(['43-66',str(self.bin[43:67]),'ELT(DT) Location Test Protocol','reserved'])
 
             latdelta,longdelta,ltmin,ltsec,lgmin,lgsec,ltoffset,lgoffset =(0,0,0,0,0,0,0,0)
             lat,declat,latdir =  Fcn.latitudeRLS(self.bin[67],self.bin[68:76])           
