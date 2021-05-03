@@ -61,7 +61,8 @@ def decoded_beacon(hexcode,fieldlst=[]):
                 'protocol_type':beacon.loctype(),
                 'uin':beacon.hexuin(),
                 'location':'{}, {}'.format(beacon.location[0], beacon.location[1]),
-                'bch_match': beacon.bchmatch()
+                'bch_match': beacon.bchmatch(),
+                'kitchen_sink': beacon.tablebin
             }
     for fld in fieldlst:
         if dispatch.__contains__(fld):
