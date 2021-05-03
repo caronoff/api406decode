@@ -28,6 +28,7 @@ def counter_increase():
     return jsonify({'counter': str(value)})
 
 def decoded_beacon(hexcode,fieldlst=[]):
+
     try:
         beacon = decodehex2.Beacon(hexcode)
         res = db.get_item(Key={'id': 'counter'})
@@ -48,6 +49,7 @@ def decoded_beacon(hexcode,fieldlst=[]):
 
     dispatch = {'hexcode':hexcode,
                 'has_errors':has_errors,
+                'country': beacon.get_country(),
                 'msgtype':beacon.type,
                 'tac':beacon.gettac(),
                 'beacontype':beacon.btype(),
@@ -57,7 +59,9 @@ def decoded_beacon(hexcode,fieldlst=[]):
                 'msg_note':beacon.genmsg,
                 'loc_prot_fixed_bits':beacon.fbits(),
                 'protocol_type':beacon.loctype(),
-                'uin':beacon.hexuin()
+                'uin':beacon.hexuin(),
+                'location':'{}, {}'.format(beacon.location[0], beacon.location[1]),
+                'bch_match': beacon.bchmatch()
             }
     for fld in fieldlst:
         if dispatch.__contains__(fld):
@@ -71,6 +75,7 @@ def dispatch_list(fieldlst):
     decodedic = {'country': beacon.get_country()
                  }
     dispatch = {'hexcode': hexcode,
+                'country': beacon.get_country(),
                 'has_errors': has_errors,
                 'msgtype': beacon.type,
                 'tac': beacon.gettac(),

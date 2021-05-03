@@ -590,6 +590,17 @@ class BeaconFGB(HexError):
     def update_locd(self,_dec,_dir):        
         return '{:.3f}'.format(Fcn.latlongdir(_dir)*float(abs(_dec)))
 
+    def bchmatch(self):
+        bch1errors = 'No bch errors in pdf1/bch1'
+        bch2errors = 'No bch errors in pdf2/bch2'
+        if self.bch.bch1errors > 0 :
+            bch1errors='bch1 errors: {}'.format(self.bch.bch1errors)
+        if self.bch.bch2errors > 0:
+            bch2errors = 'bch2 errors: {}'.format(self.bch.bch2errors)
+
+        return '  '.join((bch1errors,bch2errors))
+
+
     def locationProtocol(self):      
         
         typelocprotbin=self.bin[37:41]        
