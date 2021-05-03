@@ -148,6 +148,7 @@ def jsonhex():
 
 @app.route('/json', methods=['PUT'])
 def jsonhex2():
+    start = timeit.timeit()
     decodelst=[]
     decodedic = {}
     item={}
@@ -202,9 +203,8 @@ def jsonhex2():
 
             decodelst.append(item)
 
-
-
-
+        end = timeit.timeit()
+        #decodelst.append({'seconds': str(end - start)})
     return jsonify(decodelst)
 
 
