@@ -96,7 +96,7 @@ def dispatch_list(fieldlst):
     return decodedic
 
 
-@app.route('/json', methods=['PUT'])
+@app.route('/jsondic', methods=['PUT'])
 def jsonhex():
     start = timeit.timeit()
     decodedic = {}
@@ -136,11 +136,75 @@ def jsonhex():
             except KeyError:
                 decodedic[str(i)] = {'error':['bad json header request', 'hexcode key not found at item {}'.format(i)]}
     end = timeit.timeit()
-    #print(start,end,end - start)
-    decodedic['server_exection_time']={'seconds': str(end-start)}
+
+
+
+    decodedic['server_exection_time'] = {'seconds': str(end - start)}
+
     return jsonify(decodedic)
 
 
+
+@app.route('/json', methods=['PUT'])
+def jsonhex2():
+    decodelst=[]
+    decodedic = {}
+    item={}
+    fieldlst= []
+    req_data = request.get_json()
+    if type(req_data)== list:
+        hexcode = req_data
+    elif type(req_data) == dict:
+        try:
+            hexcode = req_data['hexcode']
+        except KeyError:
+            return jsonify(error=['bad json header request', 'hexcode key not found'])
+        try:
+            fieldlst= req_data['decode_flds']
+            if type(fieldlst)==str:
+                fieldlst =[req_data['decode_flds']]
+
+        except KeyError:
+            pass
+
+    else:
+        return jsonify(error=['bad json header request','hexcode key not found'])
+
+    if type(hexcode)==str:
+        item=decoded_beacon(hexcode,fieldlst)
+        item['inputmessage']=hexcode
+        decodelst.append(item)
+
+
+    elif type(hexcode)==list:
+        i=0
+        for h in hexcode:
+            item={}
+
+            i+=1
+
+            try:
+                item = decoded_beacon(h, fieldlst)
+                item['inputmessage'] = h
+
+
+
+            except TypeError:
+                item = decoded_beacon(str(h), fieldlst)
+                item['inputmessage'] = str(h)
+
+            except KeyError:
+                item={}
+                item['error'] = 'bad hexcode key'
+                item['inputmessage'] = h
+
+
+            decodelst.append(item)
+
+
+
+
+    return jsonify(decodelst)
 
 
 
