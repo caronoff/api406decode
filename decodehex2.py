@@ -6,7 +6,8 @@ import decodefunctions as Fcn
 import Gen2secondgen as Gen2
 import definitions
 import time
-
+import bch1correct as bch1
+import bch2correct as bch2
 
 
 
@@ -990,7 +991,6 @@ class BeaconFGB(HexError):
                     self.tablebin.append(['-', '-', 'ELT(DT) test beacon','Test beacon type since bits 43-66 are all 0 or All 1, designates Test Protocol'])
             #elif str(self.bin[41:43])=='11' prior to CSC-62:
             # ELT(DT) Location Test Protocol
-                self.tablebin.append(['43-66',str(self.bin[43:67]),'ELT(DT) Location Test Protocol','reserved'])
 
             latdelta,longdelta,ltmin,ltsec,lgmin,lgsec,ltoffset,lgoffset =(0,0,0,0,0,0,0,0)
             lat,declat,latdir =  Fcn.latitudeRLS(self.bin[67],self.bin[68:76])           
