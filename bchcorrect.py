@@ -3,6 +3,50 @@ import bch2correct as bch2
 import decodefunctions as Fcn
 
 
+
+def bch_recalc(inputhex):
+    results = [inputhex]
+    preamble =''
+    if len(inputhex)==36:
+        strhex = inputhex[6:]
+        preamble = inputhex[:6]
+    elif len(inputhex)==30:
+        strhex = inputhex
+        preamble =''
+    else:
+        type = 'Hex length of ' + str(len(inputhex)) + '.' + ' Length of First Generation Beacon Hex Code to test BCH must be 30 or 36'
+
+        return [type]
+
+    try:
+        bin=Fcn.hextobin(strhex)
+        _pdf1 = (bin)[:61]
+        _bch1 = (bin)[61:82]
+        _pdf2 = (bin)[82:108]
+        _bch2 = (bin)[108:]
+
+        bch1calc = Fcn.calcbch(bin, "1001101101100111100011", 0, 61, 82)
+        bch2calc = Fcn.calcbch(bin, '1010100111001', 82, 108, 120)
+
+        if _pdf1+bch1calc+_pdf2+bch2calc == bin:
+            results.append('bch1 and bch2 recomputed from provided pdf1 and pdf2 match')
+        else:
+            if bch1calc!=_bch1:
+                results.append('bch1 recomputed from provided pdf1 in input message {}'.format(bch1calc))
+            if bch2calc!=_bch2:
+                results.append('bch2 recomputed from provided pdf2 in input message {}'.format(bch2calc))
+            results.append(preamble+Fcn.bin2hex(_pdf1 + bch1calc + _pdf2 + bch2calc))
+        return results
+
+
+
+    except TypeError as err:
+        return [inputhex + '  Is not a valid hex']
+
+
+
+
+
 def bch_check(inputhex):
     errors = [inputhex]
     preamble =''
@@ -39,10 +83,10 @@ def bch_check(inputhex):
 
 if __name__ == "__main__":
     strhex = input("30 character Hex message: ")
-    #raise HexError('FormatError', 'Not a valid hex message')
+
     errors=[]
-    errors = bch_check(strhex)
+    errors = bch_recalc(strhex)
 
     if errors:
         print(errors)
-    
+

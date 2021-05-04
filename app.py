@@ -3,7 +3,7 @@ import decodehex2
 import boto3
 import os
 import timeit
-from bchcorrect import bch_check
+from bchcorrect import bch_check, bch_recalc
 from dotenv import load_dotenv
 load_dotenv('.env')
 app = Flask(__name__)
@@ -63,6 +63,8 @@ def decoded_beacon(hexcode,fieldlst=[]):
                 'uin':beacon.hexuin(),
                 'location':'{}, {}'.format(beacon.location[0], beacon.location[1]),
                 'bch_match': beacon.bchmatch(),
+                'bch_correct' : bch_check(hexcode),
+                'bch_recompute' : bch_recalc(hexcode),
                 'kitchen_sink': beacon.tablebin
             }
     for fld in fieldlst:
@@ -73,29 +75,7 @@ def decoded_beacon(hexcode,fieldlst=[]):
 
     return decodedic
 
-def dispatch_list(fieldlst):
-    decodedic = {'country': beacon.get_country()
-                 }
-    dispatch = {'hexcode': hexcode,
-                'country': beacon.get_country(),
-                'has_errors': has_errors,
-                'msgtype': beacon.type,
-                'tac': beacon.gettac(),
-                'beacontype': beacon.btype(),
-                'first_or_second_gen': beacon.gentype,
-                'errors': beacon.errors,
-                'mid': beacon.get_mid(),
-                'msg_note': beacon.genmsg,
-                'loc_prot_fixed_bits': beacon.fbits(),
-                'protocol_type': beacon.loctype(),
-                'uin': beacon.hexuin()
-                }
-    for fld in fieldlst:
-        if dispatch.__contains__(fld):
-            decodedic[fld]=dispatch[fld]
-        else:
-            decodedic[fld] = '{} not a valid field'.format(fld)
-    return decodedic
+
 
 
 @app.route('/jsondic', methods=['PUT'])
@@ -215,20 +195,20 @@ def jsonhex2():
 def decode(hexcode):
     try:
         beacon = decodehex2.Beacon(hexcode)
-        res = db.get_item(Key={'id': 'counter'})
-        value = res['Item']['counter_value'] + 1
-        res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
-                             ExpressionAttributeValues={':value': value}, )
+        #res = db.get_item(Key={'id': 'counter'})
+        #value = res['Item']['counter_value'] + 1
+        #res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
+        #                     ExpressionAttributeValues={':value': value}, )
         mid=beacon.get_mid()
         country=beacon.get_country()
-        ipaddress = str(request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr))
-        hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, 'mid': mid,'country':country, 'ipaddress':ipaddress, })
+        #ipaddress = str(request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr))
+        #hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, 'mid': mid,'country':country, 'ipaddress':ipaddress, })
         bch = bch_check(hexcode)
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
 
 
-    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype, errors=beacon.errors, bch_correction = bch)
+    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype, errors=beacon.errors, bch_correct = bch, bch_recompute= bch_recalc(hexcode))
 
 @app.route('/',methods=['GET'])
 def api():
