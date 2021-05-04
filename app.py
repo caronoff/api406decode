@@ -31,11 +31,11 @@ def decoded_beacon(hexcode,fieldlst=[]):
 
     try:
         beacon = decodehex2.Beacon(hexcode)
-        res = db.get_item(Key={'id': 'counter'})
-        value = res['Item']['counter_value'] + 1
-        res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
-                             ExpressionAttributeValues={':value': value}, )
-        hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, })
+        #res = db.get_item(Key={'id': 'counter'})
+        #value = res['Item']['counter_value'] + 1
+        #res = db.update_item(Key={'id': 'counter'}, UpdateExpression='set counter_value=:value',
+        #                     ExpressionAttributeValues={':value': value}, )
+        #hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, })
     except decodehex2.HexError as err:
         return {'error':[err.value, err.message]}
     if beacon.errors:
@@ -148,7 +148,7 @@ def jsonhex():
 
 @app.route('/json', methods=['PUT'])
 def jsonhex2():
-    start = timeit.timeit()
+    #start = timeit.timeit()
     decodelst=[]
     decodedic = {}
     item={}
@@ -203,8 +203,9 @@ def jsonhex2():
 
             decodelst.append(item)
 
-        end = timeit.timeit()
-        #decodelst.append({'seconds': str(end - start)})
+    #end = timeit.timeit()
+    #decodelst.append({'seconds': str(end - start)})
+    #print(end,start,str(end - start))
     return jsonify(decodelst)
 
 
