@@ -36,21 +36,21 @@ def pdf1_to_bch1(pdf1,bch1):
     bitflips=0
     bch = bchlib.BCH(BCH_POLYNOMIAL, BCH_BITS)
     data = bytearray(bitstring_to_bytes(binary_data_pdf1))
-    print('m:',bch.m)
+    #print('m:',bch.m)
     rebuildpdf=''
     for e in range(len(data)):
         segment=decodefunctions.dec2bin(data[e]).zfill(8)
         rebuildpdf=rebuildpdf+segment
-        print(e, data[e],segment)
+        #print(e, data[e],segment)
 
     #print(binary_data_pdf1)
-    print(rebuildpdf,len(rebuildpdf),binary_data_pdf1==rebuildpdf)
+    #print(rebuildpdf,len(rebuildpdf),binary_data_pdf1==rebuildpdf)
     ecc = bch.encode(data)
-    print(len(ecc))
+    #print(len(ecc))
     bchstring = ''
     for e in ecc:
         binchar = decodefunctions.dec2bin(e)
-        print(e, binchar)
+        #print(e, binchar)
         bchstring = bchstring + binchar
 
 
@@ -58,10 +58,10 @@ def pdf1_to_bch1(pdf1,bch1):
     ecc_provided = bytearray(bitstring_to_bytes(bch1))
     packet=data + ecc_provided
     bchstr2=''
-    print(len(data),len(ecc),len(packet))
-    print('ecc included:',ecc_provided,len(ecc_provided),type(ecc_provided))
-    print('ecc calc:', ecc,len(ecc),type(ecc))
-    print('match',ecc==ecc_provided)
+    #print(len(data),len(ecc),len(packet))
+    #print('ecc included:',ecc_provided,len(ecc_provided),type(ecc_provided))
+    #print('ecc calc:', ecc,len(ecc),type(ecc))
+    #print('match',ecc==ecc_provided)
 
 
 
@@ -70,7 +70,7 @@ def pdf1_to_bch1(pdf1,bch1):
         data, ecc = packet[:-bch.ecc_bytes], packet[-bch.ecc_bytes:]
         #correct
         bitflips = bch.decode_inplace(data,ecc)
-        print('bitflips: %d' % (bitflips))
+        #print('bitflips: %d' % (bitflips))
         newdata=decodefunctions.dec2bin(data[0])
         for e in data[1:]:
             binchar = decodefunctions.dec2bin(e).zfill(8)

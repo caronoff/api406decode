@@ -3,6 +3,7 @@ import decodehex2
 import boto3
 import os
 import timeit
+from bchcorrect import bch_check
 from dotenv import load_dotenv
 load_dotenv('.env')
 app = Flask(__name__)
@@ -222,11 +223,12 @@ def decode(hexcode):
         country=beacon.get_country()
         ipaddress = str(request.environ.get('HTTP_X_FORWARDED_FOR', request.remote_addr))
         hextable.put_item(Item={'entry_id': str(value), 'hexcode': hexcode, 'mid': mid,'country':country, 'ipaddress':ipaddress, })
+        bch = bch_check(hexcode)
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
 
 
-    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype, errors=beacon.errors)
+    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype, errors=beacon.errors, bch = bch)
 
 @app.route('/',methods=['GET'])
 def api():

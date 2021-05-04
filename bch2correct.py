@@ -22,29 +22,29 @@ def pdf2_to_bch2(pdf2,bch2):
     for e in range(len(data)):
         segment=decodefunctions.dec2bin(data[e]).zfill(8)
         rebuildpdf2=rebuildpdf2+segment
-        print(e, data[e],segment)
+        #print(e, data[e],segment)
 
-    print(binary_data_pdf2)
-    print(rebuildpdf2,len(rebuildpdf2),binary_data_pdf2==rebuildpdf2)
+    #print(binary_data_pdf2)
+    #print(rebuildpdf2,len(rebuildpdf2),binary_data_pdf2==rebuildpdf2)
 
     ecc = bch.encode(data)
-    print('computed ecc bytes:',len(ecc))
+    #print('computed ecc bytes:',len(ecc))
     bchstring = ''
 
     for e in ecc:
         binchar = decodefunctions.dec2bin(e).zfill(8)
-        print(e, binchar)
+        #print(e, binchar)
         bchstring = bchstring + binchar
-    print(bchstring)
-    print(bch2)
+    #print(bchstring)
+    #print(bch2)
 
     # create array of ecc provide by bch
     ecc_provided = bytearray(bch1correct.bitstring_to_bytes(bch2))
     packet=data + ecc_provided
     bchstr2=''
-    print(len(data),len(ecc),len(packet))
-    print('ecc included:',ecc_provided,len(ecc_provided),type(ecc_provided))
-    print('ecc calc:', ecc,len(ecc),type(ecc))
+    #print(len(data),len(ecc),len(packet))
+    #print('ecc included:',ecc_provided,len(ecc_provided),type(ecc_provided))
+    #print('ecc calc:', ecc,len(ecc),type(ecc))
 
     #
     #
@@ -54,7 +54,7 @@ def pdf2_to_bch2(pdf2,bch2):
          data, ecc = packet[:-bch.ecc_bytes], packet[-bch.ecc_bytes:]
     #     #correct
          bitflips = bch.decode_inplace(data,ecc)
-         print('bitflips: %d' % (bitflips))
+         #print('bitflips: %d' % (bitflips))
          newdata=decodefunctions.dec2bin(data[0])
          for e in data[1:]:
              binchar = decodefunctions.dec2bin(e).zfill(8)
