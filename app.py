@@ -208,8 +208,7 @@ def decode(hexcode):
         return jsonify(error=[err.value,err.message])
 
 
-    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype, errors=beacon.errors, bch_correct = bch, bch_recompute
-    = bch_recalc(hexcode))
+    return jsonify(mid=mid,country=country,msgtype=beacon.type,tac=beacon.gettac(), beacontype=beacon.btype(), first_or_second_gen=beacon.gentype, errors=beacon.errors, bch_correct = bch, bch_recompute = bch_recalc(hexcode))
 
 @app.route('/',methods=['GET'])
 def api():
