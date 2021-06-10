@@ -696,7 +696,7 @@ class SecondGen(Gen2Error):
         return self.tac
 
     def get_sn(self):
-        return self.SerialNum
+        return self.serialnum
 
     def get_id(self):
         return self._id
