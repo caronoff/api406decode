@@ -476,7 +476,7 @@ class SecondGen(Gen2Error):
         if self.type!='uin':
             return Func.getBeaconType(self.bits[138:141])
         else:
-            return 'UIN s/n: {}'.format(Func.getVesselid(self.bits[46:49]))
+            return 'UIN Of Type: {}'.format(Func.getVesselid(self.bits[46:49]))
 
     def vesselIDfill(self,deduct_offset,bits):
 
