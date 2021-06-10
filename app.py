@@ -207,14 +207,16 @@ def decode(hexcode):
     except decodehex2.HexError as err:
         return jsonify(error=[err.value,err.message])
 
-
+    errors=''
+    for err in beacon.errors:
+        errors=errors+';'+err
     return jsonify(mid=mid,
                    country=country,
                    msgtype=beacon.type,
                    tac=beacon.gettac(),
                    beacontype=beacon.btype(),
                    first_or_second_gen=beacon.gentype,
-                   errors=beacon.errors,
+                   errors=errors,
                    bch_correct = bch,
                    bch_recompute = bch_recalc(hexcode),
                    beacon_id=beacon.get_id(),
