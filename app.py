@@ -221,6 +221,7 @@ def decode(hexcode):
                    bch_recompute = bch_recalc(hexcode),
                    beacon_id=beacon.get_id(),
                    beacon_sn=beacon.get_sn(),
+                   uin=beacon.hexuin(),
                    beacon_protocol=beacon.loctype())
 
 @app.route('/',methods=['GET'])
