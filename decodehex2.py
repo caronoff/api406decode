@@ -1261,7 +1261,7 @@ class Beacon(HexError):
         return self.beacon.hexuin()
 
     def bchmatch(self):
-        return self.beacon.bchmatch()
+        return  'pending'  #self.beacon.bchmatch()
 
     def gettac(self):
         return self.beacon.gettac()
