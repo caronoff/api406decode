@@ -2,6 +2,7 @@
 #print("Content-Type: text/html\n")
 #print()
 import decodefunctions as Fcn
+import Gen2functions as Func
 ### -*- coding: utf-8 -*-
 import Gen2secondgen as Gen2
 import definitions
@@ -283,6 +284,17 @@ class BeaconFGB(HexError):
         elif self.bin[16:25] == '000101111':
             return 'Normal b:16-24: 0 0010 1111'
         return self.bin[16:25]
+
+    def bchmatch(self):
+        e='No errors'
+        e1=e2=""
+        if len(self.bin) >= 60 and (self.bch.bch1errors > 0 or self.bch.bch2errors > 0) :
+            e=''
+            if (self.bch.bch1errors > 0):
+                e1='COMPUTED BCH1 DOES NOT MATCH ENCODED BCH1!!'
+            elif (self.bch.bch2errors > 0):
+                e2='COMPUTED BCH2 DOES NOT MATCH ENCODED BCH2!!'
+        return e + e1 + ":" +e2
 
         
     def get_country(self):
@@ -1254,6 +1266,18 @@ class Beacon(HexError):
         else:
             return True
 
+    def lat(self):
+        if self.has_loc():
+            return self.beacon.latitude
+        else:
+            return "n/a"
+
+    def long(self):
+        if self.has_loc():
+            return self.beacon.longitude
+        else:
+            return "n/a"
+
     def btype(self):
         return self.beacon.btype()
 
@@ -1261,7 +1285,7 @@ class Beacon(HexError):
         return self.beacon.hexuin()
 
     def bchmatch(self):
-        return  'pending'  #self.beacon.bchmatch()
+        return  self.beacon.bchmatch()
 
     def gettac(self):
         return self.beacon.gettac()

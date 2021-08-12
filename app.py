@@ -53,6 +53,8 @@ def decoded_beacon(hexcode,fieldlst=[]):
                 'country': beacon.get_country(),
                 'msgtype':beacon.type,
                 'tac':beacon.gettac(),
+                'lat':beacon.lat(),
+                'long':beacon.long(),
                 'beacontype':beacon.btype(),
                 'first_or_second_gen':beacon.gentype,
                 'errors' : beacon.errors,
@@ -62,7 +64,7 @@ def decoded_beacon(hexcode,fieldlst=[]):
                 'protocol_type':beacon.loctype(),
                 'uin':beacon.hexuin(),
                 'location':'{}, {}'.format(beacon.location[0], beacon.location[1]),
-                'bch_match': "beacon.bchmatch()",
+                'bch_match': beacon.bchmatch(),
                 'bch_correct' : bch_check(hexcode),
                 'bch_recompute' : bch_recalc(hexcode),
                 'kitchen_sink': beacon.tablebin

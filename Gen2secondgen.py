@@ -729,5 +729,3 @@ class SecondGen(Gen2Error):
             return True
 
 
-
-
