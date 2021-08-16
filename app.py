@@ -59,6 +59,7 @@ def decoded_beacon(hexcode,fieldlst=[]):
                 'first_or_second_gen':beacon.gentype,
                 'errors' : beacon.errors,
                 'mid':beacon.get_mid(),
+                'cancellation': beacon.cancellation,
                 'msg_note':beacon.genmsg,
                 'loc_prot_fixed_bits':beacon.fbits(),
                 'protocol_type':beacon.loctype(),
