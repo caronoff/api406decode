@@ -135,6 +135,7 @@ class BeaconFGB(HexError):
         self.hex = str(strhex)
         self.count = 1
         self._loc = False
+        self.cancellation = False
         self.tablebin = []
         self.type=''
         self.tac=''
@@ -1054,6 +1055,7 @@ class BeaconFGB(HexError):
 
             if self.type!='uin':
                 if str(self.bin[67:86]) == '1111110101111111010': #type is ELT-DT cancellation message
+                    self.cancellation = True
                     self.tablebin.append(['67-75', str(self.bin[67:76]), 'ELT-DT Cancellation message pattern: {}'.format('1 11111010'),'Cancellation message'])
                     self.tablebin.append(['76-85', str(self.bin[76:86]),  'ELT-DT Cancellation message pattern: {}'.format('1 111111010'),'Cancellation message'])
                     self.tablebin.append(['86-106', str(self.bin[86:107]), BCH1, str(self.bch.bch1calc()),definitions.moreinfo['bch1']])
@@ -1153,7 +1155,7 @@ class BeaconFGB(HexError):
             self.latitude= a
             self.longitude = b
         else:
-            self.location = (0, 0)
+            self.location = ('NA', 'NA')
             self.latitude = 0
             self.longitude = 0
         self._btype=btype
@@ -1247,6 +1249,7 @@ class Beacon(HexError):
 
 
         self.beacon=beacon
+        self.cancellation = self.beacon.cancellation
         self.latitude=self.beacon.latitude
         self.longitude=self.beacon.longitude
         self.location=self.beacon.location

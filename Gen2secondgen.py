@@ -24,6 +24,7 @@ class SecondGen(Gen2Error):
     def __init__(self, hexCode=None):
         self.bits = '0' * 252
         self.validhex=True
+        self.cancellation = False
         if hexCode:
             self.processHex(hexCode)
 
@@ -264,7 +265,7 @@ class SecondGen(Gen2Error):
                                       'Rotating Field Type:',
                                       '(#15) Cancellation Message'])
                 self.rotatingbin = rotating.rotating15(self.bits[155:203])
-
+                self.cancellation = True
 
             ##################################
             # All other rotating fields spare #
