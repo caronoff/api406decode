@@ -1,6 +1,64 @@
 import bch1correct as bch1
 import bch2correct as bch2
 import decodefunctions as Fcn
+import Gen2functions as Fcn2
+
+def bch1_binarycalc(inputhex):
+    try:
+        bin=Fcn.hextobin(inputhex)
+    except TypeError as err:
+        return [inputhex + '  Is not a valid hex']
+
+    result = ''
+
+    if len(inputhex)==36:
+        strhex = inputhex[6:]
+        bin=bin[24:]
+        result = Fcn.calcbch(bin, "1001101101100111100011", 0, 61, 82)
+
+    elif len(inputhex)==30 :
+        strhex = inputhex
+        result = Fcn.calcbch(bin, "1001101101100111100011", 0, 61, 82)
+
+    elif len(inputhex)==63 :
+        # SGB recalc bch1
+        strhex = inputhex
+        result = Fcn2.calcBCH(bin, 0, 202, 250)
+
+    else:
+        result = 'Invalid Input Hex length of ' + str(len(inputhex)) + '.' + ' Valid length of FGB 30/36  or  63 for SGB'
+
+    return result
+
+
+
+
+
+
+def bch2_binarycalc(inputhex):
+    try:
+        bin = Fcn.hextobin(inputhex)
+    except TypeError as err:
+        return [inputhex + '  Is not a valid hex']
+
+    result = ''
+
+    if len(inputhex) == 36:
+        strhex = inputhex[6:]
+        bin = bin[24:]
+        result = Fcn.calcbch(bin, '1010100111001', 82, 108, 120)
+
+    elif len(inputhex) == 30:
+        strhex = inputhex
+        result = Fcn.calcbch(bin, '1010100111001', 82, 108, 120)
+
+
+
+    else:
+        result = 'Invalid Input Hex length of ' + str(len(inputhex)) + '.' + ' Valid lengths of FGB message are 30 or 36'
+
+    return result
+
 
 
 
@@ -82,11 +140,14 @@ def bch_check(inputhex):
 
 
 if __name__ == "__main__":
-    strhex = input("30 character Hex message: ")
+    strhex = input("Hex message: ")
 
     errors=[]
-    errors = bch_recalc(strhex)
+    #errors = bch_recalc(strhex)
 
     if errors:
         print(errors)
+
+    print(bch1_binarycalc(strhex))
+    print(bch2_binarycalc(strhex))
 

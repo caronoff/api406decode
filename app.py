@@ -3,7 +3,7 @@ import decodehex2
 import boto3
 import os
 import timeit
-from bchcorrect import bch_check, bch_recalc
+from bchcorrect import bch_check, bch_recalc, bch1_binarycalc, bch2_binarycalc
 from dotenv import load_dotenv
 load_dotenv('.env')
 app = Flask(__name__)
@@ -68,6 +68,8 @@ def decoded_beacon(hexcode,fieldlst=[]):
                 'bch_match': beacon.bchmatch(),
                 'bch_correct' : bch_check(hexcode),
                 'bch_recompute' : bch_recalc(hexcode),
+                'bch1_binarycalc':bch1_binarycalc(hexcode),
+                'bch2_binarycalc':bch2_binarycalc(hexcode),
                 'kitchen_sink': beacon.tablebin
             }
     for fld in fieldlst:
