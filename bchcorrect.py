@@ -52,7 +52,8 @@ def bch2_binarycalc(inputhex):
         strhex = inputhex
         result = Fcn.calcbch(bin, '1010100111001', 82, 108, 120)
 
-
+    elif len(inputhex) ==63 :
+        return ""
 
     else:
         result = 'Invalid Input Hex length of ' + str(len(inputhex)) + '.' + ' Valid lengths of FGB message are 30 or 36'
