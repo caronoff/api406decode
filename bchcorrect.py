@@ -23,7 +23,7 @@ def bch1_binarycalc(inputhex):
     elif len(inputhex)==63 :
         # SGB recalc bch1
         strhex = inputhex
-        result = Fcn2.calcBCH(bin, 0, 202, 250)
+        result = Fcn2.calcBCH(bin[2:], 0, 202, 250)
 
     else:
         result = 'Invalid Input Hex length of ' + str(len(inputhex)) + '.' + ' Valid length of FGB 30/36  or  63 for SGB'
